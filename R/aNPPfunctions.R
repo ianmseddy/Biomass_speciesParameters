@@ -189,15 +189,10 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   factorialTraitsThatVary <- sapply(factorialTraits, function(x) length(unique(x)) > 1)
   factorialTraitsThatVary <- names(factorialTraitsThatVary)[factorialTraitsThatVary]
   factorialTraitsVarying <- factorialTraits[, ..factorialTraitsThatVary]
-
+  rm(factorialTraits)# TODO: this has 14 columns we don't care about. confirm we can rm
   GCtrans <- purrr::transpose(GCs)
   originalData <- rbindlist(GCtrans$originalData, idcol = "Pair")
   
-  message("starting digest")
-  # digFB <- CacheDigest(list(factorialBiomass))
-  # digFT <- CacheDigest(list(factorialTraitsVarying))
-  dig <- CacheDigest(list(factorialBiomass, factorialTraitsVarying,
-                          GCtrans$NonLinearModel, speciesTable))
   factorialBiomass <- factorialBiomass[startsWith(factorialBiomass$Sp, "Sp")]
   gc()
   #join with inflationFactorKey - it's possible this data.table::copy is unnecessary
@@ -208,7 +203,8 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   factorialBiomass <- tempTraits[factorialBiomass, on = "speciesCode"]
 
   # Take only 2-cohort pixels -- they will start with Sp
-  factorialTraits <- factorialTraits[startsWith(factorialTraits$Sp, "Sp")]
+  factorialTraitsVarying <- factorialTraitsVarying[startsWith(
+    factorialTraitsVarying$Sp, "Sp")]
   setnames(factorialBiomass, "age", "standAge")
 
   message("Estimate species parameters; minimizing diff between statistical fit and Biomass_core experiment")
@@ -219,13 +215,12 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
                                        speciesEquiv = sppEquiv, sppCol = sppEquivCol,
                                        standAgesForFitting = standAgesForFitting,
                                        approach = approach, maxBInFactorial = maxBInFactorial))
-  gc()
-
+  
   outputTraitsT <- purrr::transpose(outputTraits)
   fullDataAll <- rbindlist(outputTraitsT$fullData, idcol = "Pair")
   newTraits <- rbindlist(outputTraitsT$bestTraits, idcol = "Pair")
   llAll <- rbindlist(outputTraitsT$ll, idcol = "Pair")
-  rm(GCtrans, factorialBiomass, factorialTraits, factorialTraitsVarying)
+  rm(GCtrans, factorialBiomass, factorialTraitsVarying)
   gc()
   # limit best traits to only those that are nearest to longevity provided in SpeciesTable
   # Take next higher longevity (the -Inf in the rolling joing, on the "last" join column i.e., longevity)
@@ -233,7 +228,6 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   suppressWarnings(set(setDT(newTraits), NULL, "longevityOrigFac", newTraits$longevity))
 
   bt2 <- newTraits[speciesTable[, c("species", "longevity")],
-                   #                 bt2 <- newTraits[speciesTable[, c("species", "longevity", "longevityOrig")],
                    on = c("species", "longevity"), roll = -Inf]
   bt2[, longevity := longevityOrigFac]
   bt2 <- unique(bt2[, c("species", "longevity")], by = c("species"))
@@ -244,28 +238,8 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   bt1 <- unique(bt1[, c("species", "longevity")], by = c("species"))
   speciesTableNew <- na.omit(rbindlist(list(bt1, bt2))  )
   newTraits <- newTraits[speciesTableNew, on = c("species", "longevity")]
-
-  # Take next lower longevity (the Inf in the rolling joing, on the "last" join column i.e., longevity)
-  ll2 <- fullDataAll[, list(BscaledNonLinear = mean(BscaledNonLinear),
-                            predNonLinear = mean(predNonLinear)),
-                     c("species", "standAge", "Pair")]
-  rm(fullDataAll)
-  ymaxes <- max(ll2$BscaledNonLinear, ll2$predNonLinear)
-  gg <- ggplot(ll2, aes(standAge, BscaledNonLinear, colour = species)) +
-    geom_line(size = 2) +
-    geom_point(data = originalData, aes(standAge, biomass, colour = speciesTemp), size = 0.25, alpha = 0.3) +
-    geom_line(size = 2, aes(standAge, predNonLinear, col = species), lty = "dashed") +
-    facet_wrap(~ Pair, nrow = ceiling(sqrt(length(outputTraits))), scales = "fixed") +
-    xlim(c(0, max(ll2$standAge))) + # ggplot2::scale_y_log() +
-    ylim(c(0, ymaxes)) +
-    ylab(label = "biomass") +
-    xlab(label = "stand age") +
-    ggtitle("Comparing best LandR curves (solid) with best Non-Linear fit (dashed)") +
-    theme_bw()
   
   #Collapse new traits and replace old traits
-  # newTraits <- rbindlist(outputTraitsT$bestTraits, fill = TRUE, idcol = "Pair")
-  # newTraits <- na.omit(newTraits)
   newTraits[, AICWeights := exp( -0.5 * llNonLinDelta)]
   newTraits[, AICWeightsStd := AICWeights/sum(AICWeights), by = "species"]
 
@@ -277,10 +251,37 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
                                 inflationFactor = round(sum(AICWeightsStd * inflationFactor), 3)),
                             by = "species"]
 
-
   speciesTable <- copy(speciesTable) 
   bestWeighted <- speciesTable[match(bestWeighted$species, species),
                                c(names(bestWeighted)) := bestWeighted]
+
+  #TODO: this isn't comparing the best non-linear fit-  its comparing the average non-linear fit 
+   #I don't think we want fullDataAll
+  newTraits[, best := min(llNonLinDelta), .(species)]
+  bestIndCurves <- newTraits[llNonLinDelta == best, .(pixelGroup), .(species)]
+  bestIndCurves <- fullDataAll[bestIndCurves, on = c("species", "pixelGroup")]
+  #some pixelGroups are tied with ll and 
+  bestIndCurves <- bestIndCurves[, .(BscaledNonLinear = mean(BscaledNonLinear),
+                                     predNonLinear = mean(predNonLinear)),
+                                 c("species", "standAge", "Pair")]
+  # ll2 <- fullDataAll[, .(BscaledNonLinear = mean(BscaledNonLinear),
+  #                        predNonLinear = mean(predNonLinear)),
+  #                    c("species", "standAge", "Pair")]
+  # rm(fullDataAll)
+  ymaxes <- max(bestIndCurves$BscaledNonLinear, bestIndCurves$predNonLinear)
+  
+  gg <- ggplot(bestIndCurves, aes(standAge, BscaledNonLinear, colour = species)) +
+    geom_line(size = 2) +
+    geom_point(data = originalData, aes(standAge, biomass, colour = speciesTemp), size = 0.25, alpha = 0.3) +
+    geom_line(size = 2, aes(standAge, predNonLinear, col = species), lty = "dashed") +
+    facet_wrap(~ Pair, nrow = ceiling(sqrt(length(outputTraits))), scales = "fixed") +
+    xlim(c(0, max(bestIndCurves$standAge))) + # ggplot2::scale_y_log() +
+    ylim(c(0, ymaxes)) +
+    ylab(label = "biomass") +
+    xlab(label = "stand age") +
+    ggtitle("Comparing best LandR curves (solid) with best Non-Linear fit (dashed)") +
+    theme_bw()
+  
 
   return(list(best = bestWeighted, gg = gg))
 }
@@ -424,15 +425,15 @@ buildModels <- function(species, psp, speciesEquiv,
 }
 
 editSpeciesTraits <- function(name, GC, traits, fT, fB, speciesEquiv, sppCol, maxBInFactorial,
-                              standAgesForFitting = c(0, 150), approach, inflationFactorKey) {
-
+                              standAgesForFitting = c(0, 150), approach) {
+  
   nameOrig <- name
   if (grepl("__", name)) {
     name <- strsplit(name, "__")[[1]]
     names(name) <- name
   }
   message("Estimating fit for ", nameOrig)
-
+  
   #Subset traits to PSP species, return unchanged if no GC present
   traits <- traits[species %in% name]
   #with two species - the gc might converge for one only
@@ -502,7 +503,7 @@ editSpeciesTraits <- function(name, GC, traits, fT, fB, speciesEquiv, sppCol, ma
   rr <- candFB[standAge == min(standAge)][, c("speciesCode", "llNonLinDelta", "inflationFactor")]
 
   # Take the average of the best
-  best <- fT[rr, on = c("speciesCode" = "speciesCode")]
+  best <- fT[rr, on = c("speciesCode")]
   bestTraits <- SpMapping[best, on = "Sp"]
   candFB <- SpMapping[candFB, on = "Sp"]
   rm(rr,fT, SpMapping, deltaDiff, fB)

@@ -170,17 +170,15 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
                                sppEquivCol, inflationFactorKey, standAgesForFitting,
                                approach, maxBInFactorial) {
 
-  #first subset by species that had data (ie aren't try-errors)
-  whichGood <- sapply(GCs, function(x){class(x$NonLinearModel[[1]])})
-  whichGood <- grep("try-error", whichGood, invert = TRUE) 
+  #remove species that are try errors (ie did not have sufficient data )
+  #models that did not converge still have data in list element
+  whichGood <- sapply(GCs, function(x){!inherits(x$NonLinearModel, "try-error")})
   GCs <- GCs[whichGood]
-  
   species <- names(GCs)
   names(species) <- species
   outputTraits <- list()
-  # This next try is because the factorial traits may have recovered from a memoised state 
-  #it will subsequently fail this test:
-  #TODO: is this necessary?
+
+  #previously species column was renamed speciesCode in other modules 
   try(setnames(factorialTraits, old = "species", new = "speciesCode"), silent = TRUE)
   # Make column with Sp which is Sp1 and Sp2 in both datasets
   set(factorialBiomass, NULL, "Sp", gsub(".+_(Sp.)", "\\1", factorialBiomass$species, perl = TRUE))

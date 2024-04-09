@@ -57,7 +57,7 @@ prepPSPaNPP <- function(studyAreaANPP, PSPgis, PSPmeasure, PSPplot,
     }
     PSPmeasure[, biomass := tempOut$biomass]
     setkey(PSPmeasure, MeasureID, OrigPlotID1, TreeNumber)
-    #do stuff
+
   } else {
     tempOut <- biomassCalculation(species = PSPmeasure$newSpeciesName,
                                   DBH = PSPmeasure$DBH,
@@ -84,7 +84,7 @@ prepPSPaNPP <- function(studyAreaANPP, PSPgis, PSPmeasure, PSPplot,
   PSPmeasure <- PSPmeasure[standAge > 0]
   PSPmeasure <- PSPmeasure[!is.na(biomass)]
 
-  #divide biomass by 10 to get kg/ha into g/m2, the LandR unit
+  #divide biomass by 10 to convert kg/ha to g/m2, the LandR unit
   PSPmeasure[, biomass := biomass/10]
 
   return(PSPmeasure)
@@ -116,13 +116,12 @@ buildGrowthCurves <- function(PSPdata, speciesCol, sppEquiv, quantileAgeSubset,
   SpPSP <- SpPSP[newSpeciesName %in% sppEquiv[["PSP"]]]
   freq <- SpPSP[, .(N = .N, spDom = spDom[1]), .(speciesTemp, MeasureID)]
   
-     # setorderv(freq, "speciesTemp")
   if (isTRUE(speciesFittingApproach == "pairwise") || isTRUE(speciesFittingApproach == "focal")) {
     #subset to species-of-interest using relative biomass (dominance)
     freq <- freq[spDom > 0.2] # minimum 20% dominance for pairwise or focal
     
     speciesComp <- freq[, .(numSp = .N, spComp = paste(speciesTemp, collapse = "__")), by = "MeasureID"]
-    # Pick only 2 spcies plots when using "pairwise"
+    # Pick only 2 species plots when using "pairwise"
     if (isTRUE(speciesFittingApproach == "pairwise")) {
       speciesComp <- speciesComp[numSp == 2]
     }
@@ -187,27 +186,29 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   factorialTraitsThatVary <- sapply(factorialTraits, function(x) length(unique(x)) > 1)
   factorialTraitsThatVary <- names(factorialTraitsThatVary)[factorialTraitsThatVary]
   factorialTraitsVarying <- factorialTraits[, ..factorialTraitsThatVary]
-  rm(factorialTraits)# TODO: this has 14 columns we don't care about. confirm we can rm
+  rm(factorialTraits)
   GCtrans <- purrr::transpose(GCs)
   originalData <- rbindlist(GCtrans$originalData, idcol = "Pair")
   
   factorialBiomass <- factorialBiomass[startsWith(factorialBiomass$Sp, "Sp")]
   gc()
-  #join with inflationFactorKey - it's possible this data.table::copy is unnecessary
+  #join with inflationFactorKey
   suppressWarnings(set(inflationFactorKey, NULL, "species", NULL))
   tempTraits <- copy(factorialTraitsVarying)
-  tempTraits <- inflationFactorKey[tempTraits, on = c("growthcurve", "mortalityshape", "longevity", "mANPPproportion")]
+  tempTraits <- inflationFactorKey[tempTraits, 
+                                   on = c("growthcurve", "mortalityshape", 
+                                          "longevity", "mANPPproportion")]
   tempTraits <- tempTraits[, .(speciesCode, inflationFactor)]
   factorialBiomass <- tempTraits[factorialBiomass, on = "speciesCode"]
 
   # Take only 2-cohort pixels -- they will start with Sp
   factorialTraitsVarying <- factorialTraitsVarying[startsWith(
     factorialTraitsVarying$Sp, "Sp")]
+
   setnames(factorialBiomass, "age", "standAge")
 
   message("Estimate species parameters; minimizing diff between statistical fit and Biomass_core experiment")
 
-  # use for loop to allow for Cache on each species
   outputTraits <- Map(name = species, GC = GCs, f = editSpeciesTraits, 
                       MoreArgs = list(traits = speciesTable, fT = factorialTraitsVarying, fB = factorialBiomass,
                                        speciesEquiv = sppEquiv, sppCol = sppEquivCol,
@@ -248,13 +249,10 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
                                 mANPPproportion = round(sum(AICWeightsStd * mANPPproportion), 3),
                                 inflationFactor = round(sum(AICWeightsStd * inflationFactor), 3)),
                             by = "species"]
-
   speciesTable <- copy(speciesTable) 
   bestWeighted <- speciesTable[match(bestWeighted$species, species),
                                c(names(bestWeighted)) := bestWeighted]
 
-  #TODO: this isn't comparing the best non-linear fit-  its comparing the average non-linear fit 
-   #I don't think we want fullDataAll
   newTraits[, best := min(llNonLinDelta), .(species)]
   bestIndCurves <- newTraits[llNonLinDelta == best, .(pixelGroup), .(species)]
   bestIndCurves <- fullDataAll[bestIndCurves, on = c("species", "pixelGroup")]
@@ -280,7 +278,6 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
     ggtitle("Comparing best LandR curves (solid) with best Non-Linear fit (dashed)") +
     theme_bw()
   
-
   return(list(best = bestWeighted, gg = gg))
 }
 

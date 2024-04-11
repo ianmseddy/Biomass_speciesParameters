@@ -292,14 +292,16 @@ updateSpeciesTables <- function(sim) {
 }
 
 useDiskFrame <- function(sim) {
+  setup_disk.frame(workers = 2) ## TODO: is there a better default? should this be user-specified?
+
   cdRows <- nrow(sim$cohortDataFactorial)
-  # the rows of a factorial object will determine whether it is unique in 99.9% of cases
+  ## the rows of a factorial object will determine whether it is unique in 99.9% of cases
   sim$cohortDataFactorial <- as.disk.frame(sim$cohortDataFactorial, overwrite = TRUE,
-                                           outdir = file.path(dataPath(sim),
+                                           outdir = file.path(inputPath(sim),
                                                               paste0("cohortDataFactorial", cdRows)))
   stRows <- nrow(sim$speciesTableFactorial)
   sim$speciesTableFactorial <- as.disk.frame(sim$speciesTableFactorial, overwrite = TRUE,
-                                             outdir = file.path(dataPath(sim),
+                                             outdir = file.path(inputPath(sim),
                                                                 paste0("speciesTableFactorial", stRows)))
   ## NOTE: disk.frame objects can be converted to data.table with as.data.table
   gc()

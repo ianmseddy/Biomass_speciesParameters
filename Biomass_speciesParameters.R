@@ -51,10 +51,11 @@ defineModule(sim, list(
     defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
                     paste("The column in `sim$sppEquiv` data.table that defines individual species.",
                           "The names should match those in the species table.")),
-    defineParameter("standAgesForFitting", "integer", c(20L, 90L), NA, NA,
+    defineParameter("standAgesForFitting", "integer", c(21L, 91L), NA, NA,
                     desc = paste("The minimum and maximum ages of the biomass-by-age curves used in fitting.",
                                  "It is generally recommended to keep this param under 200, given the low data",
-                                 "availability of stands aged 200+, with some exceptions.")),
+                                 "availability of stands aged 200+, with some exceptions.", 
+                                 "For a closed interval, end with a 1, e.g. c(31, 101).")),
     defineParameter("useHeight", "logical", TRUE, NA, NA,
                     desc = paste("Should height be used to calculate biomass (in addition to DBH).",
                                  "DBH is used by itself when height is missing.")),
@@ -239,23 +240,18 @@ Init <- function(sim) {
     
     classes <- lapply(sim$speciesGrowthCurves, FUN = "class")
     
-    noData <- vapply(sim$speciesGrowthCurves[classes == "character"], FUN = function(x) {
+    noDataSpp <- vapply(sim$speciesGrowthCurves[classes == "character"], FUN = function(x) {
       x == "insufficient data"
     }, FUN.VALUE = logical(1))
     
-    if (any(noData)) {
-      message("The following species did not have sufficient data for model estimation: ")
-      print(names(noData))
-    }
-    speciesWithNewlyEstimated <- unique(unlist(strsplit(names(sim$speciesGrowthCurves), "__")))
-    speciesWithoutNewlyEstimated <- setdiff(sim$sppEquiv[[Par$sppEquivCol]], speciesWithNewlyEstimated)
-    if (length(speciesWithoutNewlyEstimated)) {
-      message(crayon::yellow(paste(speciesWithoutNewlyEstimated, collapse = ", "),
-                             "have insufficient data to estimate species parameters; using original user supplied"))
+    if (any(noDataSpp)) {
+      message(crayon::yellow("Insufficient data to estimate species parameters for",
+                             paste(names(noDataSpp), collapse = ", "),
+                             "- will keep original user-supplied parameters"))
     }
 
     modifiedSpeciesTables <- modifySpeciesTable(
-      GCs = sim$speciesGrowthCurves,
+      GCs = sim$speciesGrowthCurves[!names(sim$speciesGrowthCurves) %in% names(noDataSpp)],
       speciesTable = sim$species,
       factorialTraits = setDT(sim$speciesTableFactorial),
       # setDT to deal with reload from Cache (no effect otherwise)

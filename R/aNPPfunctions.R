@@ -169,10 +169,6 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
                                sppEquivCol, inflationFactorKey, standAgesForFitting,
                                approach, maxBInFactorial) {
 
-  #remove species that are try errors (ie did not have sufficient data )
-  #models that did not converge still have data in list element
-  whichGood <- sapply(GCs, function(x){!inherits(x$NonLinearModel, "try-error")})
-  GCs <- GCs[whichGood]
   species <- names(GCs)
   names(species) <- species
   outputTraits <- list()
@@ -191,7 +187,8 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   originalData <- rbindlist(GCtrans$originalData, idcol = "Pair")
   
   factorialBiomass <- factorialBiomass[startsWith(factorialBiomass$Sp, "Sp")]
-  gc()
+  gc() #these objects can be enormous - recommend gc 
+  
   #join with inflationFactorKey
   suppressWarnings(set(inflationFactorKey, NULL, "species", NULL))
   tempTraits <- copy(factorialTraitsVarying)
@@ -208,10 +205,16 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   setnames(factorialBiomass, "age", "standAge")
 
   message("Estimate species parameters; minimizing diff between statistical fit and Biomass_core experiment")
-
+  gc()
+  
+  #vastly faster than previous unique(factorialBiomass$age)
+  fbAgeSample <- sort(unique(sample(factorialBiomass$standAge, 1e5)))
+  fbAges <- seq(1, max(factorialTraitsVarying$longevity), fbAgeSample[2] - fbAgeSample[1])
+  rm(fbAgeSample)
+  
   outputTraits <- Map(name = species, GC = GCs, f = editSpeciesTraits, 
                       MoreArgs = list(traits = speciesTable, fT = factorialTraitsVarying, fB = factorialBiomass,
-                                       speciesEquiv = sppEquiv, sppCol = sppEquivCol,
+                                       speciesEquiv = sppEquiv, sppCol = sppEquivCol, standAge = fbAges, 
                                        standAgesForFitting = standAgesForFitting,
                                        approach = approach, maxBInFactorial = maxBInFactorial))
   
@@ -420,8 +423,8 @@ buildModels <- function(species, psp, speciesEquiv,
 }
 
 editSpeciesTraits <- function(name, GC, traits, fT, fB, speciesEquiv, sppCol, maxBInFactorial,
-                              standAgesForFitting = c(0, 150), approach) {
-  
+                              standAge, standAgesForFitting = c(0, 150), approach) {
+
   nameOrig <- name
   if (grepl("__", name)) {
     name <- strsplit(name, "__")[[1]]
@@ -454,7 +457,8 @@ editSpeciesTraits <- function(name, GC, traits, fT, fB, speciesEquiv, sppCol, ma
   SpNames <- maxBiomass$Sp[match(names(GC$NonLinearModel), maxBiomass$speciesTemp)]
   SpMapping <- data.table(Sp = SpNames, species = name)
   names(GC$NonLinearModel) <- SpNames
-  standAge <- unique(fB$standAge)
+  
+  #standAge originally calculated from fB$standAge, but this is vastly slower
   standAge <- standAge[standAge <= max(standAgesForFitting) & standAge >= min(standAgesForFitting)]
   predGrid <- as.data.table(expand.grid(Sp = SpNames, standAge = standAge))
 

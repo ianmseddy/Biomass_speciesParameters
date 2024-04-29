@@ -227,9 +227,10 @@ span several thousands of kilometres), or select the data based on a shapefile
 
 By default, the PSP data are obtained from the National Forest Inventory
 (NFI), the Alberta Ministry of Agriculture, the Saskatchewan Ministry of the
-Environment, and the British Columbia Ministry of Forests. These data were previously
-treated for errors and standardized into a single dataset with the exact location and identifying
-attributes anonymized.
+Environment, the Ontario Ministry of Forests and Natural Resources, and 
+the British Columbia Ministry of Forests. These data were previously treated for 
+errors and standardized into a single dataset with the exact location and 
+identifying attributes anonymized.
 
 The data include individual species, diameter at breast height (DBH), and
 sometimes tree height measurements for each tree in a plot, as well as stand
@@ -531,6 +532,7 @@ pkgPath <- file.path(tempDir, "packages", version$platform,
 dir.create(pkgPath, recursive = TRUE)
 .libPaths(pkgPath, include.site = FALSE)
 
+install.packages("remotes")
 if (!require(Require, lib.loc = pkgPath)) {
   remotes::install_github(
     paste0("PredictiveEcology/",
@@ -545,7 +547,7 @@ setLinuxBinaryRepo()
 ### Get the module and module dependencies {#bsppparam-example-pkg-mods}
 
 ```{r getModule-Biomass-Biomass-speciesParameters, eval = FALSE}
-Require(pasteo("PredictiveEcology/",
+Require(paste0("PredictiveEcology/",
                "SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db"), 
         require = FALSE, upgrade = FALSE, standAlone = TRUE)
 
@@ -576,34 +578,11 @@ modules <- list("Biomass_speciesParameters")
 
 #the purpose of this table is experiment with modify longevity - longevity is not estimated by the module
 #but it is used in trait estimation. 
-inputSpecies <- data.table(species = c("Abie_bal", 'Abie_las', 'Betu_pap', 
-                                       'Lari_lar', 'Pice_eng', 'Pice_gla', 
-                                       'Pice_mar', 'Pinu_ban', 'Pinu_con', 
-                                       'Pseu_men', "Popu_tre"),
-                           longevity = c(300, 300, 170, 170, 330, 250, 
-                                         250, 175, 300, 600, 200),
-                           mortalityshape = 15, growthcurve = 0)
-objects <- list(species = inputSpecies)
 
+objects <- list()
 inputs <- list()
 outputs <- list()
-
-parameters <- list(Biomass_speciesParameters = 
-                     list(quantileAgeSubset = list(
-                            "Abie_bal" = 95, 
-                            "Abie_las" = 95,
-                            "Betu_pap" = 95,
-                            "Lari_lar" = 95,
-                            "Pice_eng" = 95,
-                            "Pice_gla" = 95,
-                            "Pice_mar" = 95,
-                            "Pinu_ban" = 95,
-                            "Pinu_con" = 99, 
-                            "Popu_tre" = 99,
-                            "Pseu_men" = 99
-                          )
-                     ))
-
+parameters <- list()
 mySim <- simInitAndSpades(times = times, 
                           params = parameters, 
                           modules = modules, 

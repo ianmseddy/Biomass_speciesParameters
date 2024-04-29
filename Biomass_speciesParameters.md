@@ -1,6 +1,6 @@
 ---
 title: "LandR _Biomass_speciesParameters_ Manual"
-date: "Last updated: 2023-02-08"
+date: "Last updated: 2024-04-29"
 output:
   bookdown::html_document2:
     toc: true
@@ -28,7 +28,7 @@ always_allow_html: true
 
 
 
-[![module-version-Badge](/home/achubaty/Documents/GitHub/FOR-CAST/Ontario_AOU_ROF/modules/Biomass_speciesParameters/figures/moduleVersionBadge.png)](ssh://git@github.com/PredictiveEcology/Biomass_speciesParameters9362fa82d3f3b473ee441905dbee8ef2b68ef6a3)
+[![module-version-Badge](/home/achubaty/Documents/GitHub/FOR-CAST/Ontario_AOU_ROF/modules/Biomass_speciesParameters/figures/moduleVersionBadge.png)](ssh://git@github.com/PredictiveEcology/Biomass_speciesParameters52f2edc709d97663515d53065be2d7d745070dca)
 
 [![Issues-badge](/home/achubaty/Documents/GitHub/FOR-CAST/Ontario_AOU_ROF/modules/Biomass_speciesParameters/figures/issuesBadge.png)](https://github.com/PredictiveEcology/Biomass_speciesParameters/issues)
 
@@ -76,7 +76,7 @@ module that does so (e.g., *Biomass_borealDataPrep*). However it can be used sta
 in an initial developmental phase for easier inspection of the statistical 
 calibration procedure employed.
 
-As of February 08, 2023, the *raw* PSP data used in this module is not freely
+As of April 29, 2024, the *raw* PSP data used in this module is not freely
 available, and data sharing agreements must be obtained from the governments of
 SK, AB, and BC to obtain it. However, the *processed and anonymized* PSP data is 
 provided via a Google Drive folder accessed automatically by the module.
@@ -159,9 +159,10 @@ span several thousands of kilometres), or select the data based on a shapefile
 
 By default, the PSP data are obtained from the National Forest Inventory
 (NFI), the Alberta Ministry of Agriculture, the Saskatchewan Ministry of the
-Environment, and the British Columbia Ministry of Forests. These data were previously
-treated for errors and standardized into a single dataset with the exact location and identifying
-attributes anonymized.
+Environment, the Ontario Ministry of Forests and Natural Resources, and 
+the British Columbia Ministry of Forests. These data were previously treated for 
+errors and standardized into a single dataset with the exact location and 
+identifying attributes anonymized.
 
 The data include individual species, diameter at breast height (DBH), and
 sometimes tree height measurements for each tree in a plot, as well as stand
@@ -333,7 +334,7 @@ take place. This input object **must be supplied by the user or another module**
 \newpage
 \blandscape
 
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="color: black; margin-left: auto; margin-right: auto;">
 <caption>(\#tab:moduleInputs2-Biomass-speciesParameters)List of (ref:Biomass-speciesParameters) input objects and their description.</caption>
  <thead>
   <tr>
@@ -345,9 +346,15 @@ take place. This input object **must be supplied by the user or another module**
  </thead>
 <tbody>
   <tr>
+   <td style="text-align:left;"> speciesTableFactorial </td>
+   <td style="text-align:left;"> data.table </td>
+   <td style="text-align:left;"> A large species table (sensu Biomass_core) with all columns used by Biomass_core, e.g., longevity, growthcurve, mortalityshape, etc., when it was used to generate `cohortDataFactorial`. See PredictiveEcology/Biomass_factorial for futher information. It will be written to `disk.frame` following sim completion, to preserve RAM. </td>
+   <td style="text-align:left;"> https://drive.google.com/file/d/1NH7OpAnWtLyO8JVnhwdMJakOyapBnuBH/ </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> cohortDataFactorial </td>
    <td style="text-align:left;"> data.table </td>
-   <td style="text-align:left;"> Results of factorial species trait simulation. </td>
+   <td style="text-align:left;"> A large `cohortData` table (sensu Biomass_core) with columns age, B, and speciesCode that joins with `speciesTableFactorial`. See PredictiveEcology/Biomass_factorial for further information. It will be written to `disk.frame` following sim completion, to preserve RAM. </td>
    <td style="text-align:left;"> https://drive.google.com/file/d/1NH7OpAnWtLyO8JVnhwdMJakOyapBnuBH/ </td>
   </tr>
   <tr>
@@ -371,7 +378,7 @@ take place. This input object **must be supplied by the user or another module**
   <tr>
    <td style="text-align:left;"> species </td>
    <td style="text-align:left;"> data.table </td>
-   <td style="text-align:left;"> A table of invariant species traits with the following trait colums: 'species', 'Area', 'longevity', 'sexualmature', 'shadetolerance', 'firetolerance', 'seeddistance_eff', 'seeddistance_max', 'resproutprob', 'mortalityshape', 'growthcurve', 'resproutage_min', 'resproutage_max', 'postfireregen', 'wooddecayrate', 'leaflongevity' 'leafLignin', 'hardsoft'. Only 'growthcurve' and 'mortalityshape' are used in this module. Default is from Dominic Cyr and Yan Boulanger's applications of LANDIS-II </td>
+   <td style="text-align:left;"> A table of invariant species traits with the following trait colums: 'species', 'Area', 'longevity', 'sexualmature', 'shadetolerance', 'firetolerance', 'seeddistance_eff', 'seeddistance_max', 'resproutprob', 'mortalityshape', 'growthcurve', 'resproutage_min', 'resproutage_max', 'postfireregen', 'wooddecayrate', 'leaflongevity' 'leafLignin', and 'hardsoft'. Only 'growthcurve', 'hardsoft', and 'mortalityshape' are used in this module. Default is from Dominic Cyr and Yan Boulanger's applications of LANDIS-II </td>
    <td style="text-align:left;"> https://raw.githubusercontent.com/dcyr/LANDIS-II_IA_generalUseFiles/master/speciesTraits.csv </td>
   </tr>
   <tr>
@@ -387,15 +394,9 @@ take place. This input object **must be supplied by the user or another module**
    <td style="text-align:left;"> NA </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> speciesTableFactorial </td>
-   <td style="text-align:left;"> data.table </td>
-   <td style="text-align:left;"> Table with species traits to be matched with `sim$cohortDataFactorial`. </td>
-   <td style="text-align:left;"> https://drive.google.com/file/d/1NH7OpAnWtLyO8JVnhwdMJakOyapBnuBH/ </td>
-  </tr>
-  <tr>
    <td style="text-align:left;"> studyAreaANPP </td>
-   <td style="text-align:left;"> SpatialPolygonsDataFrame </td>
-   <td style="text-align:left;"> Study area used to crop PSP data before building growth curves </td>
+   <td style="text-align:left;"> sf </td>
+   <td style="text-align:left;"> Optional study area used to crop PSP data before building growth curves. If supplied, an ecoregion-scale object is recommended, at a minimum. </td>
    <td style="text-align:left;"> NA </td>
   </tr>
 </tbody>
@@ -427,7 +428,7 @@ growing in single- or multi-species context?
 \newpage
 \blandscape
 
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="color: black; margin-left: auto; margin-right: auto;">
 <caption>(\#tab:moduleParams2-Biomass-speciesParameters)List of (ref:Biomass-speciesParameters) parameters and their description.</caption>
  <thead>
   <tr>
@@ -449,22 +450,6 @@ growing in single- or multi-species context?
    <td style="text-align:left;"> The model used to calculate biomass from DBH. Can be either 'Lambert2005' or 'Ung2008'. </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> GAMMiterations </td>
-   <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> 8 </td>
-   <td style="text-align:left;"> 1 </td>
-   <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> Number of iterations for GAMMs. Accepts a list of vectors, with names equal to those in `sim$sppEquiv[, P(sim)$sppEquivCol]`, so that GAMMS are customizable per species </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> GAMMknots </td>
-   <td style="text-align:left;"> numeric </td>
-   <td style="text-align:left;"> 3 </td>
-   <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> The number of knots to use in the GAMM. Either 3 or 4 is recommended. Accepts a list of vectors, with names equal to those in `sim$sppEquiv[, P(sim)$sppEquivCol]`, so that GAMMS are customizable per species </td>
-  </tr>
-  <tr>
    <td style="text-align:left;"> maxBInFactorial </td>
    <td style="text-align:left;"> integer </td>
    <td style="text-align:left;"> 5000 </td>
@@ -473,12 +458,12 @@ growing in single- or multi-species context?
    <td style="text-align:left;"> The arbitrary maximum biomass for the factorial simulations. This is a per-species maximum within a pixel </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> minimumPlotsPerGamm </td>
+   <td style="text-align:left;"> minimumPlots </td>
    <td style="text-align:left;"> numeric </td>
    <td style="text-align:left;"> 50 </td>
    <td style="text-align:left;"> 10 </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> Minimum number of PSP plots before building GAMM </td>
+   <td style="text-align:left;"> Minimum number of PSP plots per species </td>
   </tr>
   <tr>
    <td style="text-align:left;"> minDBH </td>
@@ -494,7 +479,7 @@ growing in single- or multi-species context?
    <td style="text-align:left;"> all </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> Which PSP datasets to source, defaulting to all. Other available options include 'BC', 'AB', 'SK', 'NFI', and 'dummy'. 'dummy' should be used for unauthorized users. </td>
+   <td style="text-align:left;"> Which PSP datasets to source, defaulting to all. Other available options include 'BC', 'AB', 'SK', 'ON', 'NB', 'NFI', and 'dummy'. 'dummy' should be used for unauthorized users. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> PSPperiod </td>
@@ -510,7 +495,7 @@ growing in single- or multi-species context?
    <td style="text-align:left;"> 95 </td>
    <td style="text-align:left;"> 1 </td>
    <td style="text-align:left;"> 100 </td>
-   <td style="text-align:left;"> Quantile by which to subset PSP data. As older stands are sparsely represented, the oldest measurements become vastly more influential. This parameter accepts both a single value and a list of vectors named by `sim$sppEquiv[, P(sim)$sppEquivCol]`. The PSP stand ages are found in `sim$speciesGAMMs$SPECIES$originalData`, where SPECIES is the species ID </td>
+   <td style="text-align:left;"> Quantile by which to subset PSP data. As older stands are sparsely represented the oldest measurements become vastly more influential. This parameter accepts both a single value and a list of vectors, named according to sppEquivCol. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> speciesFittingApproach </td>
@@ -523,18 +508,18 @@ growing in single- or multi-species context?
   <tr>
    <td style="text-align:left;"> sppEquivCol </td>
    <td style="text-align:left;"> character </td>
-   <td style="text-align:left;"> default </td>
+   <td style="text-align:left;"> Boreal </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> The column in `sim$sppEquiv` data.table to group species by. This parameter should share the same name as in Biomass_borealDataPrep . PSPs are aggregated by names in the PSP column and traits estimated for species with corresponding names in the `sim$sppEquiv[, P(sim)$sppEquivCol]` </td>
+   <td style="text-align:left;"> The column in `sim$sppEquiv` data.table that defines individual species. The names should match those in the species table. </td>
   </tr>
   <tr>
    <td style="text-align:left;"> standAgesForFitting </td>
    <td style="text-align:left;"> integer </td>
-   <td style="text-align:left;"> 0, 150 </td>
+   <td style="text-align:left;"> 21, 91 </td>
    <td style="text-align:left;"> NA </td>
    <td style="text-align:left;"> NA </td>
-   <td style="text-align:left;"> The minimum and maximum ages to use while matching NonLinearFit (or GAMM) with LandR curves provided in the factorial. Since the majory of the data that went into fits for the NonLinearFit from PSPs is less than 200, it is likely wise to constrain the range to something smaller than 0 to 200 </td>
+   <td style="text-align:left;"> The minimum and maximum ages of the biomass-by-age curves used in fitting. It is generally recommended to keep this param under 200, given the low data availability of stands aged 200+, with some exceptions. For a closed interval, end with a 1, e.g. c(31, 101). </td>
   </tr>
   <tr>
    <td style="text-align:left;"> useHeight </td>
@@ -585,6 +570,14 @@ growing in single- or multi-species context?
    <td style="text-align:left;"> This describes the simulation time interval between save events </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> .studyAreaName </td>
+   <td style="text-align:left;"> character </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> NA </td>
+   <td style="text-align:left;"> Human-readable name for the growth curve filename. If `NA`, a hash of sppEquiv[[sppEquivCol]] will be used. </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> .useCache </td>
    <td style="text-align:left;"> character </td>
    <td style="text-align:left;"> .inputOb.... </td>
@@ -610,7 +603,7 @@ name.
 
 -   `speciesGAMMs` -- the fitted GAMM model objects for each species.
 
-<table class="table" style="margin-left: auto; margin-right: auto;">
+<table class="table" style="color: black; margin-left: auto; margin-right: auto;">
 <caption>(\#tab:moduleOutputs-Biomass-speciesParameters)List of (ref:Biomass-speciesParameters) output objects and their description.</caption>
  <thead>
   <tr>
@@ -620,6 +613,11 @@ name.
   </tr>
  </thead>
 <tbody>
+  <tr>
+   <td style="text-align:left;"> cohortDataFactorial </td>
+   <td style="text-align:left;"> disk.frame </td>
+   <td style="text-align:left;"> This object is converted to a `disk.frame` to save memory. Read using `as.data.table()`. </td>
+  </tr>
   <tr>
    <td style="text-align:left;"> species </td>
    <td style="text-align:left;"> data.table </td>
@@ -631,9 +629,14 @@ name.
    <td style="text-align:left;"> The updated spatially-varying species traits table (see description for this object in inputs) </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> speciesGAMMs </td>
+   <td style="text-align:left;"> speciesGrowthCurves </td>
    <td style="text-align:left;"> list </td>
-   <td style="text-align:left;"> A list of mixed-effect general additive models (GAMMs) for each tree species modeling biomass as a function of age </td>
+   <td style="text-align:left;"> list containing each species non-linear model, model data, and the unfiltered PSP data </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> speciesTableFactorial </td>
+   <td style="text-align:left;"> disk.frame </td>
+   <td style="text-align:left;"> This object is converted to a `disk.frame` to save memory. Read using `as.data.table()`. </td>
   </tr>
 </tbody>
 </table>
@@ -692,6 +695,7 @@ pkgPath <- file.path(tempDir, "packages", version$platform,
 dir.create(pkgPath, recursive = TRUE)
 .libPaths(pkgPath, include.site = FALSE)
 
+install.packages("remotes")
 if (!require(Require, lib.loc = pkgPath)) {
   remotes::install_github(
     paste0("PredictiveEcology/",
@@ -707,7 +711,7 @@ setLinuxBinaryRepo()
 
 
 ```r
-Require(pasteo("PredictiveEcology/",
+Require(paste0("PredictiveEcology/",
                "SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db"), 
         require = FALSE, upgrade = FALSE, standAlone = TRUE)
 
@@ -739,34 +743,11 @@ modules <- list("Biomass_speciesParameters")
 
 #the purpose of this table is experiment with modify longevity - longevity is not estimated by the module
 #but it is used in trait estimation. 
-inputSpecies <- data.table(species = c("Abie_bal", 'Abie_las', 'Betu_pap', 
-                                       'Lari_lar', 'Pice_eng', 'Pice_gla', 
-                                       'Pice_mar', 'Pinu_ban', 'Pinu_con', 
-                                       'Pseu_men', "Popu_tre"),
-                           longevity = c(300, 300, 170, 170, 330, 250, 
-                                         250, 175, 300, 600, 200),
-                           mortalityshape = 15, growthcurve = 0)
-objects <- list(species = inputSpecies)
 
+objects <- list()
 inputs <- list()
 outputs <- list()
-
-parameters <- list(Biomass_speciesParameters = 
-                     list(quantileAgeSubset = list(
-                            "Abie_bal" = 95, 
-                            "Abie_las" = 95,
-                            "Betu_pap" = 95,
-                            "Lari_lar" = 95,
-                            "Pice_eng" = 95,
-                            "Pice_gla" = 95,
-                            "Pice_mar" = 95,
-                            "Pinu_ban" = 95,
-                            "Pinu_con" = 99, 
-                            "Popu_tre" = 99,
-                            "Pseu_men" = 99
-                          )
-                     ))
-
+parameters <- list()
 mySim <- simInitAndSpades(times = times, 
                           params = parameters, 
                           modules = modules, 

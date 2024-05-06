@@ -55,7 +55,7 @@ defineModule(sim, list(
                     desc = paste("The minimum and maximum ages of the biomass-by-age curves used in fitting.",
                                  "It is generally recommended to keep this param under 200, given the low data",
                                  "availability of stands aged 200+, with some exceptions.",
-                                 "For a closed interval, end with a 1, e.g. c(31, 101).")),
+                                 "For a closed interval, end with a 1, e.g. `c(31, 101)`.")),
     defineParameter("useHeight", "logical", TRUE, NA, NA,
                     desc = paste("Should height be used to calculate biomass (in addition to DBH).",
                                  "DBH is used by itself when height is missing.")),

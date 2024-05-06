@@ -207,7 +207,12 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
   gc()
 
   ## vastly faster than previous unique(factorialBiomass$age)
-  fbAgeSample <- sort(unique(sample(factorialBiomass$standAge, 1e5)))
+  fbAgeSampleSize <- 1e5
+  if (length(factorialBiomass$standAge) > fbAgeSampleSize) {
+    fbAgeSample <- sort(unique(sample(factorialBiomass$standAge, fbAgeSampleSize)))
+  } else {
+    fbAgeSample <- sort(unique(factorialBiomass$standAge))
+  }
   fbAges <- seq(1, max(factorialTraitsVarying$longevity), fbAgeSample[2] - fbAgeSample[1])
   rm(fbAgeSample)
 

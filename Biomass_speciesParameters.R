@@ -41,7 +41,7 @@ defineModule(sim, list(
     defineParameter("quantileAgeSubset", "numeric", 95, 1, 100,
                     desc = paste("Quantile by which to subset PSP data. As older stands are sparsely represented", 
                                  "the oldest measurements become vastly more influential. This parameter accepts",
-                                 "both a single value and a list of vectors, named according to sppEquivCol.")),
+                                 "both a single value and a list of vectors, named according to `sppEquivCol`.")),
     defineParameter("speciesFittingApproach", "character", "focal", NA, NA,
                     desc =  paste("Either 'all', 'pairwise', 'focal' or 'single', indicating whether to pool ",
                                   "all species into one fit, do pairwise species (for multiple cohort situations), do",

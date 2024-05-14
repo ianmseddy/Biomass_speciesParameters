@@ -222,7 +222,7 @@ modifySpeciesTable <- function(GCs, speciesTable, factorialTraits, factorialBiom
                                        standAgesForFitting = standAgesForFitting,
                                        approach = approach, maxBInFactorial = maxBInFactorial))
 
-  outputTraits <- outputTraits[!is.null(outputTraits)] #remove bad fits
+  outputTraits <- outputTraits[!sapply(outputTraits, is.null)] #remove bad fits
   outputTraitsT <- purrr::transpose(outputTraits)
   fullDataAll <- rbindlist(outputTraitsT$fullData, idcol = "Pair")
   newTraits <- rbindlist(outputTraitsT$bestTraits, idcol = "Pair")

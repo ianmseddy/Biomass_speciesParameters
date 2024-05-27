@@ -15,11 +15,10 @@ defineModule(sim, list(
   loadOrder = list(after = c("Biomass_speciesFactorial", "Biomass_borealDataPrep"),
                    before = c("Biomass_core")),
   reqdPkgs = list("crayon", "data.table", "disk.frame", "fpCompare", "ggplot2", "gridExtra",
-                  "magrittr", "mgcv", "nlme", "purrr", "robustbase", "sf",
+                  "magrittr", "mgcv", "nlme", "purrr", "robustbase",
+                  "reproducible", "sf", "SpaDES.core",
                   "PredictiveEcology/LandR@development (>= 1.1.0.9077)",
                   "PredictiveEcology/pemisc@development (>= 0.0.3.9002)",
-                  "PredictiveEcology/reproducible@development (>= 1.2.10.9001)",
-                  "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)",
                   "ianmseddy/PSPclean@development (>= 0.1.4.9005)"),
   parameters = rbind(
     defineParameter("biomassModel", "character", "Lambert2005", NA, NA,
@@ -39,7 +38,7 @@ defineModule(sim, list(
     defineParameter("PSPperiod", "numeric", c(1920, 2019), NA, NA,
                     desc = paste("The years by which to subset sample plot data, if desired. Must be a vector of length 2")),
     defineParameter("quantileAgeSubset", "numeric", 95, 1, 100,
-                    desc = paste("Quantile by which to subset PSP data. As older stands are sparsely represented", 
+                    desc = paste("Quantile by which to subset PSP data. As older stands are sparsely represented",
                                  "the oldest measurements become vastly more influential. This parameter accepts",
                                  "both a single value and a list of vectors, named according to sppEquivCol.")),
     defineParameter("speciesFittingApproach", "character", "focal", NA, NA,
@@ -54,7 +53,7 @@ defineModule(sim, list(
     defineParameter("standAgesForFitting", "integer", c(21L, 91L), NA, NA,
                     desc = paste("The minimum and maximum ages of the biomass-by-age curves used in fitting.",
                                  "It is generally recommended to keep this param under 200, given the low data",
-                                 "availability of stands aged 200+, with some exceptions.", 
+                                 "availability of stands aged 200+, with some exceptions.",
                                  "For a closed interval, end with a 1, e.g. c(31, 101).")),
     defineParameter("useHeight", "logical", TRUE, NA, NA,
                     desc = paste("Should height be used to calculate biomass (in addition to DBH).",
@@ -69,7 +68,7 @@ defineModule(sim, list(
                     desc = "This describes the simulation time at which the first save event should occur"),
     defineParameter(".saveInterval", "numeric", NA, NA, NA,
                     desc = "This describes the simulation time interval between save events"),
-    defineParameter(".studyAreaName", "character", NA, NA, NA,  
+    defineParameter(".studyAreaName", "character", NA, NA, NA,
                     desc = paste("Human-readable name for the growth curve filename.",
                                  "If `NA`, a hash of sppEquiv[[sppEquivCol]] will be used.")),
     defineParameter(".useCache", "character", c(".inputObjects", "init"), NA, NA,
@@ -132,7 +131,7 @@ defineModule(sim, list(
     createsOutput(objectName = "speciesEcoregion", "data.table",
                   desc = paste("The updated spatially-varying species traits table",
                                "(see description for this object in inputs)")),
-    createsOutput(objectName = "speciesGrowthCurves", "list", 
+    createsOutput(objectName = "speciesGrowthCurves", "list",
                   desc = "list containing each species non-linear model, model data, and the unfiltered PSP data"),
     createsOutput(objectName = "speciesTableFactorial", objectClass = "disk.frame",
                   desc = "This object is converted to a `disk.frame` to save memory. Read using `as.data.table()`.")
@@ -194,17 +193,17 @@ Init <- function(sim) {
     data.table::setDTthreads(4)
   }
   on.exit(data.table::setDTthreads(origDTthreads))
-  
+
   ## if no PSP data supplied, simList returned unchanged
-  
+
   if (all(P(sim)$PSPdataTypes != "none")) {
     if (is.na(P(sim)$sppEquivCol)) {
       stop("Please supply 'sppEquivCol' in parameters of Biomass_speciesParameters.")
     }
-    
+
     paramCheckOtherMods(sim, "maxBInFactorial")
     paramCheckOtherMods(sim, paramToCheck = "sppEquivCol", ifSetButDifferent = "error")
-    
+
     #find the max biomass achieved by each species when growing with no competition
     tempMaxB <- sim$cohortDataFactorial[age == 1, .N, .(pixelGroup)]
     #take the pixelGroups with only 1 species at start of factorial
@@ -237,13 +236,13 @@ Init <- function(sim) {
       minDBH = P(sim)$minDBH,
       speciesFittingApproach = P(sim)$speciesFittingApproach,
       userTags = c(currentModule(sim), "buildGrowthCurves_Wrapper"))
-    
+
     classes <- lapply(sim$speciesGrowthCurves, FUN = "class")
-    
+
     noDataSpp <- vapply(sim$speciesGrowthCurves[classes == "character"], FUN = function(x) {
       x == "insufficient data"
     }, FUN.VALUE = logical(1))
-    
+
     if (any(noDataSpp)) {
       message(crayon::yellow("Insufficient data to estimate species parameters for",
                              paste(names(noDataSpp), collapse = ", "),
@@ -263,7 +262,7 @@ Init <- function(sim) {
       maxBInFactorial = P(sim)$maxBInFactorial,
       inflationFactorKey = tempMaxB,
       standAgesForFitting = P(sim)$standAgesForFitting)
-    
+
     gg <- modifiedSpeciesTables$gg
     Plots(gg, usePlot = FALSE, fn = print, ggsaveArgs = list(width = 10, height = 7),
           filename = paste("LandR_VS_NLM_growthCurves"))
@@ -374,16 +373,16 @@ Save <- function(sim) {
       !suppliedElsewhere("PSPgis_sppParams", sim)) {
     message("one or more PSP objects not supplied. Generating PSP data...")
 
-    PSPdata <- Cache(getPSP, 
-                     PSPdataTypes = P(sim)$PSPdataTypes, 
-                     destinationPath = dPath, 
-                     forGMCS = FALSE, 
+    PSPdata <- Cache(getPSP,
+                     PSPdataTypes = P(sim)$PSPdataTypes,
+                     destinationPath = dPath,
+                     forGMCS = FALSE,
                      userTags = c(cacheTags, P(sim)$PSPdataTypes))
-    
+
     sim$PSPmeasure_sppParams <- PSPdata$PSPmeasure
     sim$PSPplot_sppParams <- PSPdata$PSPplot
     sim$PSPgis_sppParams <- PSPdata$PSPgis
   }
-  
+
   return(invisible(sim))
 }

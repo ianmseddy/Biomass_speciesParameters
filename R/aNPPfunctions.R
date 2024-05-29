@@ -437,7 +437,7 @@ editSpeciesTraits <- function(name, GC, traits, fT, fB, speciesEquiv, sppCol, ma
   traits <- traits[species %in% name]
   ## with two species - the gc might converge for one only
   ## this structure is to catch try-errors in both pairwise and single
-  if (class(GC) == "try-error" | class(GC) == "character") {
+  if (class(GC) == "try-error" || class(GC) == "character") {
     message("not estimating traits for ", name, " as model was not fit. Output of fitting attempt:")
     message(paste(GC))
     return(NULL)
@@ -445,7 +445,7 @@ editSpeciesTraits <- function(name, GC, traits, fT, fB, speciesEquiv, sppCol, ma
     ## catch when not all models converged
     classesNonLinear <- unlist(lapply(GC$NonLinearModel, class))
     ## decided to allow non-converged GCs, if non-linear converged
-    if (any("try-error" %in% c(classesNonLinear)) | is.null(classesNonLinear)) {
+    if (any("try-error" %in% c(classesNonLinear)) || is.null(classesNonLinear)) {
       msg <- if (is.null(classesNonLinear)) {
         "NULL"
       } else {

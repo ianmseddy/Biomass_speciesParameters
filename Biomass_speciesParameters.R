@@ -16,10 +16,9 @@ defineModule(sim, list(
                    before = c("Biomass_core")),
   reqdPkgs = list("crayon", "data.table", "disk.frame", "fpCompare", "ggplot2", "gridExtra",
                   "magrittr", "mgcv", "nlme", "purrr", "robustbase", "sf",
+                  "reproducible (>= 1.2.10.9001)", "SpaDES.core (>= 2.0.2.9004)",
                   "PredictiveEcology/LandR@development (>= 1.1.0.9077)",
                   "PredictiveEcology/pemisc@development (>= 0.0.3.9002)",
-                  "PredictiveEcology/reproducible@development (>= 1.2.10.9001)",
-                  "PredictiveEcology/SpaDES.core@development (>= 2.0.2.9004)",
                   "ianmseddy/PSPclean@development (>= 0.1.4.9005)"),
   parameters = rbind(
     defineParameter("biomassModel", "character", "Lambert2005", NA, NA,

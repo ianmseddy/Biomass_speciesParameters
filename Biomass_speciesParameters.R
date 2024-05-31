@@ -224,7 +224,13 @@ Init <- function(sim) {
                              "- will keep original user-supplied parameters"))
     }
 
-    modifiedSpeciesTables <- modifySpeciesTable(
+    cacheExtra <- .robustDigest(list(
+      sim$speciesGrowthCurves[!names(sim$speciesGrowthCurves) %in% names(noDataSpp)],
+      setDT(sim$speciesTableFactorial),
+      setDT(sim$cohortDataFactorial)
+      ))
+    modifiedSpeciesTables <- Cache(
+      modifySpeciesTable,
       GCs = sim$speciesGrowthCurves[!names(sim$speciesGrowthCurves) %in% names(noDataSpp)],
       speciesTable = sim$species,
       factorialTraits = setDT(sim$speciesTableFactorial),
@@ -236,7 +242,10 @@ Init <- function(sim) {
       sppEquivCol = P(sim)$sppEquivCol,
       maxBInFactorial = P(sim)$maxBInFactorial,
       inflationFactorKey = tempMaxB,
-      standAgesForFitting = P(sim)$standAgesForFitting
+      standAgesForFitting = P(sim)$standAgesForFitting,
+      omitArgs = c("GCs", "factorialTraits", "factorialBiomass"),
+      .cacheExtra = cacheExtra,
+      userTags = c(currentModule(sim), "modifiedSpeciesTables")
     )
 
     gg <- modifiedSpeciesTables$gg
@@ -270,7 +279,7 @@ useDiskFrame <- function(sim) {
                                              outdir = file.path(inputPath(sim),
                                                                 paste0("speciesTableFactorial", stRows)))
   ## NOTE: disk.frame objects can be converted to data.table with as.data.table
-  gc()
+  gc(reset = TRUE)
   return(sim)
 }
 

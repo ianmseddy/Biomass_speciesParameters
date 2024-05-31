@@ -155,20 +155,11 @@ doEvent.Biomass_speciesParameters = function(sim, eventTime, eventType) {
       # schedule future event(s)
       # sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "Biomass_speciesParameters", "plot")
       sim <- scheduleEvent(sim, P(sim)$.saveInitialTime, "Biomass_speciesParameters", "save")
-      sim <- scheduleEvent(sim, start(sim), "Biomass_speciesParameters",
-                           "updateSpeciesTables", eventPriority = 1)
-      sim <- scheduleEvent(sim, start(sim), "Biomass_speciesParameters",
-                           "writeFactorialToDisk", eventPriority = 2)
-    },
 
-    updateSpeciesTables = {
       sim <- updateSpeciesTables(sim)
-    },
 
-    writeFactorialToDisk = {
       sim <- useDiskFrame(sim)
     },
-
     plot = {
       ## plotting happens in Init - it could be moved if relevant objects are assigned to mod
     },
@@ -176,7 +167,6 @@ doEvent.Biomass_speciesParameters = function(sim, eventTime, eventType) {
       # sim <- scheduleEvent(sim, time(sim) + P(sim)$.saveInterval, "Biomass_speciesParameters", "save")
 
     },
-
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
   )

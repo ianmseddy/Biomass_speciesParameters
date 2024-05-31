@@ -7,7 +7,7 @@ defineModule(sim, list(
               person(c("Eliot"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut")),
               person(c("Ceres"), "Barros", email = "ceres.barros@ubc.ca", role = c("ctb"))),
   childModules = character(0),
-  version = list(Biomass_speciesParameters = "2.0.0"),
+  version = list(Biomass_speciesParameters = "2.0.1"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -149,21 +149,13 @@ doEvent.Biomass_speciesParameters = function(sim, eventTime, eventType) {
       ### check for more detailed object dependencies:
       ### (use `checkObject` or similar)
 
-      # build growth curves if applicable
+      ## build growth curves if applicable + update tables
       sim <- Init(sim)
-      #update tables
 
-      # schedule future event(s)
-      # sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "Biomass_speciesParameters", "plot")
+      ## schedule future event(s)
       sim <- scheduleEvent(sim, P(sim)$.saveInitialTime, "Biomass_speciesParameters", "save")
       sim <- scheduleEvent(sim, start(sim), "Biomass_speciesParameters",
-                           "updateSpeciesTables", eventPriority = 1)
-      sim <- scheduleEvent(sim, start(sim), "Biomass_speciesParameters",
                            "writeFactorialToDisk", eventPriority = 2)
-    },
-
-    updateSpeciesTables = {
-      sim <- updateSpeciesTables(sim)
     },
 
     writeFactorialToDisk = {
@@ -272,6 +264,9 @@ Init <- function(sim) {
   } else {
     message("P(sim)$PSPdataTypes is 'none' -- bypassing species traits estimation from PSP data.")
   }
+
+  sim <- updateSpeciesTables(sim)
+
   return(sim)
 }
 

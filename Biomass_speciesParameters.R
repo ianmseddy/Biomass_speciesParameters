@@ -17,7 +17,7 @@ defineModule(sim, list(
   reqdPkgs = list("crayon", "data.table", "disk.frame", "fpCompare", "ggplot2", "gridExtra",
                   "magrittr", "mgcv", "nlme", "purrr", "robustbase", "sf",
                   "reproducible (>= 2.1.0)", "SpaDES.core (>= 2.0.2.9004)",
-                  "PredictiveEcology/LandR@development (>= 1.1.0.9077)",
+                  "PredictiveEcology/LandR (>= 1.1.0.9077)",
                   "PredictiveEcology/pemisc@development (>= 0.0.3.9002)",
                   "ianmseddy/PSPclean@development (>= 0.1.4.9005)"),
   parameters = rbind(

@@ -7,7 +7,7 @@ defineModule(sim, list(
               person(c("Eliot"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut")),
               person(c("Ceres"), "Barros", email = "ceres.barros@ubc.ca", role = c("ctb"))),
   childModules = character(0),
-  version = list(Biomass_speciesParameters = "2.0.1"),
+  version = list(Biomass_speciesParameters = "2.0.1.9001"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -17,7 +17,7 @@ defineModule(sim, list(
   reqdPkgs = list("crayon", "data.table", "disk.frame", "fpCompare", "ggplot2", "gridExtra",
                   "magrittr", "mgcv", "nlme", "purrr", "robustbase", "sf",
                   "reproducible (>= 2.1.0)", "SpaDES.core (>= 2.0.2.9004)",
-                  "PredictiveEcology/LandR@development (>= 1.1.0.9077)",
+                  "PredictiveEcology/LandR (>= 1.1.0.9077)",
                   "PredictiveEcology/pemisc@development (>= 0.0.3.9002)",
                   "ianmseddy/PSPclean@development (>= 0.1.4.9005)"),
   parameters = rbind(
@@ -224,7 +224,13 @@ Init <- function(sim) {
                              "- will keep original user-supplied parameters"))
     }
 
-    modifiedSpeciesTables <- modifySpeciesTable(
+    cacheExtra <- .robustDigest(list(
+      sim$speciesGrowthCurves[!names(sim$speciesGrowthCurves) %in% names(noDataSpp)],
+      setDT(sim$speciesTableFactorial),
+      setDT(sim$cohortDataFactorial)
+      ))
+    modifiedSpeciesTables <- Cache(
+      modifySpeciesTable,
       GCs = sim$speciesGrowthCurves[!names(sim$speciesGrowthCurves) %in% names(noDataSpp)],
       speciesTable = sim$species,
       factorialTraits = setDT(sim$speciesTableFactorial),
@@ -236,7 +242,10 @@ Init <- function(sim) {
       sppEquivCol = P(sim)$sppEquivCol,
       maxBInFactorial = P(sim)$maxBInFactorial,
       inflationFactorKey = tempMaxB,
-      standAgesForFitting = P(sim)$standAgesForFitting
+      standAgesForFitting = P(sim)$standAgesForFitting,
+      omitArgs = c("GCs", "factorialTraits", "factorialBiomass"),
+      .cacheExtra = cacheExtra,
+      userTags = c(currentModule(sim), "modifiedSpeciesTables")
     )
 
     gg <- modifiedSpeciesTables$gg
@@ -270,7 +279,7 @@ useDiskFrame <- function(sim) {
                                              outdir = file.path(inputPath(sim),
                                                                 paste0("speciesTableFactorial", stRows)))
   ## NOTE: disk.frame objects can be converted to data.table with as.data.table
-  gc()
+  gc(reset = TRUE)
   return(sim)
 }
 

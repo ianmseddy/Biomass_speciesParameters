@@ -7,7 +7,7 @@ defineModule(sim, list(
               person(c("Eliot"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut")),
               person(c("Ceres"), "Barros", email = "ceres.barros@ubc.ca", role = c("ctb"))),
   childModules = character(0),
-  version = list(Biomass_speciesParameters = "2.0.0"),
+  version = list(Biomass_speciesParameters = "2.0.1.9001"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),
@@ -15,9 +15,9 @@ defineModule(sim, list(
   loadOrder = list(after = c("Biomass_speciesFactorial", "Biomass_borealDataPrep"),
                    before = c("Biomass_core")),
   reqdPkgs = list("crayon", "data.table", "disk.frame", "fpCompare", "ggplot2", "gridExtra",
-                  "magrittr", "mgcv", "nlme", "purrr", "robustbase",
-                  "reproducible", "sf", "SpaDES.core",
-                  "PredictiveEcology/LandR@development (>= 1.1.0.9077)",
+                  "magrittr", "mgcv", "nlme", "purrr", "robustbase", "sf",
+                  "reproducible (>= 2.1.0)", "SpaDES.core (>= 2.0.2.9004)",
+                  "PredictiveEcology/LandR (>= 1.1.0.9077)",
                   "PredictiveEcology/pemisc@development (>= 0.0.3.9002)",
                   "ianmseddy/PSPclean@development (>= 0.1.4.9005)"),
   parameters = rbind(
@@ -40,7 +40,7 @@ defineModule(sim, list(
     defineParameter("quantileAgeSubset", "numeric", 95, 1, 100,
                     desc = paste("Quantile by which to subset PSP data. As older stands are sparsely represented",
                                  "the oldest measurements become vastly more influential. This parameter accepts",
-                                 "both a single value and a list of vectors, named according to sppEquivCol.")),
+                                 "both a single value and a list of vectors, named according to `sppEquivCol`.")),
     defineParameter("speciesFittingApproach", "character", "focal", NA, NA,
                     desc =  paste("Either 'all', 'pairwise', 'focal' or 'single', indicating whether to pool ",
                                   "all species into one fit, do pairwise species (for multiple cohort situations), do",
@@ -54,7 +54,7 @@ defineModule(sim, list(
                     desc = paste("The minimum and maximum ages of the biomass-by-age curves used in fitting.",
                                  "It is generally recommended to keep this param under 200, given the low data",
                                  "availability of stands aged 200+, with some exceptions.",
-                                 "For a closed interval, end with a 1, e.g. c(31, 101).")),
+                                 "For a closed interval, end with a 1, e.g. `c(31, 101)`.")),
     defineParameter("useHeight", "logical", TRUE, NA, NA,
                     desc = paste("Should height be used to calculate biomass (in addition to DBH).",
                                  "DBH is used by itself when height is missing.")),
@@ -77,32 +77,32 @@ defineModule(sim, list(
   ),
   inputObjects = bindrows(
     expectsInput(objectName = "speciesTableFactorial", objectClass = "data.table",
-                 desc = paste("A large species table (sensu Biomass_core) with all columns used by",
-                              "Biomass_core, e.g., longevity, growthcurve, mortalityshape, etc., when",
+                 desc = paste("A large species table (**sensu** `Biomass_core`) with all columns used by",
+                              "Biomass_core, e.g., `longevity`, `growthcurve`, `mortalityshape`, etc., when",
                               "it was used to generate `cohortDataFactorial`.",
-                              "See PredictiveEcology/Biomass_factorial for futher information.",
+                              "See `PredictiveEcology/Biomass_factorial` for futher information.",
                               "It will be written to `disk.frame` following sim completion, to preserve RAM."),
                  sourceURL = "https://drive.google.com/file/d/1NH7OpAnWtLyO8JVnhwdMJakOyapBnuBH/"),
     expectsInput(objectName = "cohortDataFactorial", objectClass = "data.table",
-                 desc = paste("A large `cohortData` table (sensu Biomass_core) with columns age, B, and speciesCode",
-                              "that joins with `speciesTableFactorial`. See PredictiveEcology/Biomass_factorial",
+                 desc = paste("A large `cohortData` table (**sensu** `Biomass_core`) with columns `age`, `B`, and `speciesCode`",
+                              "that joins with `speciesTableFactorial`. See `PredictiveEcology/Biomass_factorial`",
                               "for further information. It will be written to `disk.frame` following sim",
                               "completion, to preserve RAM."),
                  sourceURL = "https://drive.google.com/file/d/1NH7OpAnWtLyO8JVnhwdMJakOyapBnuBH/"),
     expectsInput(objectName = "PSPmeasure_sppParams", objectClass = "data.table",
                  desc = paste("Merged PSP and TSP individual tree measurements. Must include the following columns:",
-                              "'MeasureID', 'OrigPlotID1', 'MeasureYear', 'TreeNumber', 'Species', 'DBH' and 'newSpeciesName'",
+                              "`MeasureID`, `OrigPlotID1`, `MeasureYear`, `TreeNumber`, `Species`, `DBH` and `newSpeciesName`,",
                               "the latter corresponding to species names in `LandR::sppEquivalencies_CA$PSP`.",
-                              "Defaults to randomized PSP data stripped of real plotIDs"),
+                              "Defaults to randomized PSP data stripped of real `plotID`s"),
                  sourceURL = "https://drive.google.com/file/d/1LmOaEtCZ6EBeIlAm6ttfLqBqQnQu4Ca7/view?usp=sharing"),
     expectsInput(objectName = "PSPplot_sppParams", objectClass = "data.table",
-                 desc = paste("Merged PSP and TSP plot data. Defaults to randomized PSP data stripped of real plotIDs.",
-                              "Must contain columns 'MeasureID', 'MeasureYear', 'OrigPlotID1', and 'baseSA',",
+                 desc = paste("Merged PSP and TSP plot data. Defaults to randomized PSP data stripped of real `plotID`s.",
+                              "Must contain columns `MeasureID`, `MeasureYear`, `OrigPlotID1`, and `baseSA`,",
                               "the latter being stand age at year of first measurement"),
                  sourceURL = "https://drive.google.com/file/d/1LmOaEtCZ6EBeIlAm6ttfLqBqQnQu4Ca7/view?usp=sharing"),
     expectsInput(objectName = "PSPgis_sppParams", objectClass = "sf",
-                 desc = paste("Plot location `sf` object. Defaults to PSP data stripped of real plotIDs/location.",
-                              "Must include field 'OrigPlotID1' for joining to PSPplot object"),
+                 desc = paste("Plot location `sf` object. Defaults to PSP data stripped of real `plotID`s/location.",
+                              "Must include field `OrigPlotID1` for joining to `PSPplot` object"),
                  sourceURL = "https://drive.google.com/file/d/1LmOaEtCZ6EBeIlAm6ttfLqBqQnQu4Ca7/view?usp=sharing"),
     expectsInput(objectName = "species", objectClass = "data.table",
                  desc = paste("A table of invariant species traits with the following trait colums:",
@@ -145,38 +145,13 @@ doEvent.Biomass_speciesParameters = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      ### check for more detailed object dependencies:
-      ### (use `checkObject` or similar)
-
       # build growth curves if applicable
       sim <- Init(sim)
       #update tables
-
-      # schedule future event(s)
-      # sim <- scheduleEvent(sim, P(sim)$.plotInitialTime, "Biomass_speciesParameters", "plot")
-      sim <- scheduleEvent(sim, P(sim)$.saveInitialTime, "Biomass_speciesParameters", "save")
-      sim <- scheduleEvent(sim, start(sim), "Biomass_speciesParameters",
-                           "updateSpeciesTables", eventPriority = 1)
-      sim <- scheduleEvent(sim, start(sim), "Biomass_speciesParameters",
-                           "writeFactorialToDisk", eventPriority = 2)
-    },
-
-    updateSpeciesTables = {
       sim <- updateSpeciesTables(sim)
-    },
 
-    writeFactorialToDisk = {
       sim <- useDiskFrame(sim)
     },
-
-    plot = {
-      ## plotting happens in Init - it could be moved if relevant objects are assigned to mod
-    },
-    save = {
-      # sim <- scheduleEvent(sim, time(sim) + P(sim)$.saveInterval, "Biomass_speciesParameters", "save")
-
-    },
-
     warning(paste("Undefined event type: '", current(sim)[1, "eventType", with = FALSE],
                   "' in module '", current(sim)[1, "moduleName", with = FALSE], "'", sep = ""))
   )
@@ -204,22 +179,22 @@ Init <- function(sim) {
     paramCheckOtherMods(sim, "maxBInFactorial")
     paramCheckOtherMods(sim, paramToCheck = "sppEquivCol", ifSetButDifferent = "error")
 
-    #find the max biomass achieved by each species when growing with no competition
+    ## find the max biomass achieved by each species when growing with no competition
     tempMaxB <- sim$cohortDataFactorial[age == 1, .N, .(pixelGroup)]
-    #take the pixelGroups with only 1 species at start of factorial
+    ## take the pixelGroups with only 1 species at start of factorial
     tempMaxB <- tempMaxB[N == 1,]
     tempMaxB <- sim$cohortDataFactorial[pixelGroup %in% tempMaxB$pixelGroup,
                                         .(inflationFactor = P(sim)$maxBInFactorial/max(B)),
                                         , .(pixelGroup, speciesCode)]
-    # in some cases the speciesTableFactorial doesn't have "species" column; just "speciesCode"
+    ## in some cases the speciesTableFactorial doesn't have "species" column; just "speciesCode"
     if (!("species" %in% colnames(sim$speciesTableFactorial))) { # TODO this is a work around -- the speciesTableFactorial should be stable
       setnames(sim$speciesTableFactorial, old = "speciesCode", new = "species")
     }
     tempMaxB <- sim$speciesTableFactorial[tempMaxB, on = c("species" = "speciesCode", "pixelGroup")]
-    #pair-wise species will be matched with traits, as the species code won't match
+    ## pair-wise species will be matched with traits, as the species code won't match
     tempMaxB <- tempMaxB[, .(species, longevity, growthcurve, mortalityshape, mANPPproportion, inflationFactor)]
     gc()
-    #prepare PSPdata
+    ## prepare PSPdata
     sim$speciesGrowthCurves <- Cache(
       buildGrowthCurves_Wrapper,
       studyAreaANPP = sim$studyAreaANPP,
@@ -249,7 +224,13 @@ Init <- function(sim) {
                              "- will keep original user-supplied parameters"))
     }
 
-    modifiedSpeciesTables <- modifySpeciesTable(
+    cacheExtra <- .robustDigest(list(
+      sim$speciesGrowthCurves[!names(sim$speciesGrowthCurves) %in% names(noDataSpp)],
+      setDT(sim$speciesTableFactorial),
+      setDT(sim$cohortDataFactorial)
+      ))
+    modifiedSpeciesTables <- Cache(
+      modifySpeciesTable,
       GCs = sim$speciesGrowthCurves[!names(sim$speciesGrowthCurves) %in% names(noDataSpp)],
       speciesTable = sim$species,
       factorialTraits = setDT(sim$speciesTableFactorial),
@@ -261,7 +242,11 @@ Init <- function(sim) {
       sppEquivCol = P(sim)$sppEquivCol,
       maxBInFactorial = P(sim)$maxBInFactorial,
       inflationFactorKey = tempMaxB,
-      standAgesForFitting = P(sim)$standAgesForFitting)
+      standAgesForFitting = P(sim)$standAgesForFitting,
+      omitArgs = c("GCs", "factorialTraits", "factorialBiomass"),
+      .cacheExtra = cacheExtra,
+      userTags = c(currentModule(sim), "modifiedSpeciesTables")
+    )
 
     gg <- modifiedSpeciesTables$gg
     Plots(gg, usePlot = FALSE, fn = print, ggsaveArgs = list(width = 10, height = 7),
@@ -294,7 +279,7 @@ useDiskFrame <- function(sim) {
                                              outdir = file.path(inputPath(sim),
                                                                 paste0("speciesTableFactorial", stRows)))
   ## NOTE: disk.frame objects can be converted to data.table with as.data.table
-  gc()
+  gc(reset = TRUE)
   return(sim)
 }
 

@@ -176,16 +176,6 @@ a module that generates theoretical species curves by running thousands of
 *Biomass_core* simulations on landscapes populated by one or more 
 species, each simulation using a different set of species trait values.
 
--   [*Biomass_borealDataPrep*](https://github.com/PredictiveEcology/Biomass_borealDataPrep):
-prepares all parameters and inputs (including initial landscape conditions)
-that *Biomass_core* needs to run a realistic simulation. Default
-values/inputs produced are relevant for boreal forests of Western Canada.
-Used upstream from *Biomass_speciesParameters*;
-
--   [*Biomass_core*](https://github.com/PredictiveEcology/Biomass_core): core
-forest dynamics simulation module. Used downstream from
-*Biomass_speciesParameters*;
-
 ## Module manual
 
 ### General functioning {#bsppparam-general-functioning}
@@ -307,7 +297,6 @@ is selected via Akaike Information Criterion (AIC).
   (\#eq:Chapman)
 \end{equation}
 ```
-
 ```{=tex}
 \begin{equation} 
   B \sim A \times e^{-k \times e^{-p \times age}}
@@ -325,8 +314,8 @@ Species biomass ($B$) is estimated as a function of stand age ($age$), with the
 best values of the $A$, $k$ and $p$ parameters to fit the PSP data.
 
 It is possible that some selected species do not have enough data to allow for
-model convergence. In this case, *Biomass_speciesParameters* skips trait
-(re-)calibration, and values remain unchanged.
+model convergence. In this case, *Biomass_speciesParameters* skips parameter
+calibration, and parameter values remain unchanged.
 
 After each species best fit is selected (using AIC), *Biomass_speciesParameters*
 compares it to the library of theoretical curves, and picks the best one based
@@ -378,26 +367,26 @@ attention:
 
 **Spatial layers**
 
--   `studyAreaANPP` -- shapefile. A `SpatialPolygonsDataFrame` with a single
-polygon determining the where the PSP should be subset to simulation will
-take place. This input object **must be supplied by the user or another module**.
+    -   `studyAreaANPP` -- shapefile. A `SpatialPolygonsDataFrame` with a single
+        polygon determining the where the PSP should be subset to simulation
+        will take place. This input object **must be supplied by the user**.
 
-**Tables**
+-   **Tables**
 
--   `speciesTableFactorial` and `cohortDataFactorial` -- a tables of species
-    trait combinations and the theoretical species grwoth curve data
-    (respectively)
--   `PSPmeasure_sppParams`, `PSPplot_sppParams` and `PSPgis_sppParams` --
-    tree measurement, biomass growth and geographical data of the PSP
-    datasets used to buildi observed species growth curves.
--   `species` -- a table of invariant species traits that may have been
-    produced by another module. It **must** contain the columns 'species',
-    'growthcurve' and 'mortality shape', whose values will be calibrated.
--   `speciesEcoregion` -- table of spatially-varying species traits that may
-    have been produced by another module. It **must** contain the columns
-    'speciesCode', 'maxB' and 'maxANPP' and 'ecoregionGroup' (the
-    ecolocation ID). 'maxB' and 'maxANPP' values will be calibrated by
-    species.
+    -   `speciesTableFactorial` and `cohortDataFactorial` -- a tables of species
+        trait combinations and the theoretical species grwoth curve data
+        (respectively)
+    -   `PSPmeasure_sppParams`, `PSPplot_sppParams` and `PSPgis_sppParams` --
+        tree measurement, biomass growth and geographical data of the PSP
+        datasets used to buildi observed species growth curves.
+    -   `species` -- a table of invariant species traits that may have been
+        produced by another module. It **must** contain the columns 'species',
+        'growthcurve' and 'mortality shape', whose values will be calibrated.
+    -   `speciesEcoregion` -- table of spatially-varying species traits that may
+        have been produced by another module. It **must** contain the columns
+        'speciesCode', 'maxB' and 'maxANPP' and 'ecoregionGroup' (the
+        ecolocation ID). 'maxB' and 'maxANPP' values will be calibrated by
+        species.
 
 \newpage
 \blandscape
@@ -432,16 +421,16 @@ Of these parameters, the following are particularly important:
 
 **Calibration parameters**
 
--   `biomassModel` -- the model used to calculate biomass from DBH
-
--   `speciesFittingApproach` -- should the calibration take into account species
-growing in single- or multi-species context?
+    -   `biomassModel` -- the model used to calculate biomass from DBH
+    
+    -   `speciesFittingApproach` -- should the calibration take into account species
+    growing in single- or multi-species context?
 
 **Data processing**
 
--   `PSPperiod` -- PSP data period to use.
-
--   `quantileAgeSubset` -- upper quantile age value used to subset PSP data.
+    -   `PSPperiod` -- PSP data period to use.
+    
+    -   `quantileAgeSubset` -- upper quantile age value used to subset PSP data.
 
 \newpage
 \blandscape
@@ -461,14 +450,14 @@ panble(df_params, caption, landscape = TRUE,
 
 The module produces the following outputs (Table
 \@ref(tab:moduleOutputs-Biomass-speciesParameters)). Note that `species` and
-`speciesEcoregion` are modified versions of the input objects with the same
+`speciesEcoregion` are modified versions of the inputed objects with the same
 name.
 
 **Tables**
 
--   `species` and `speciesEcoregion` -- tables with calibrated trait values.
-
--   `speciesGAMMs` -- the fitted GAMM model objects for each species.
+    -   `species` and `speciesEcoregion` -- tables with calibrated trait values.
+    
+    -   `speciesGAMMs` -- the fitted GAMM model objects for each species.
 
 ```{r moduleOutputs-Biomass-speciesParameters, echo = FALSE, eval = TRUE, message = FALSE, results = 'asis'}
 df_outputs <- moduleOutputs("Biomass_speciesParameters", "..")
@@ -557,7 +546,7 @@ paths <- list(inputPath = normPath(file.path(tempDir, "inputs")),
               outputPath = normPath(file.path(tempDir, "outputs")))
 
 SpaDES.project::getModule(modulePath = paths$modulePath,
-                          c("PredictiveEcology/Biomass_speciesParameters"),
+                          c("PredictiveEcology/Biomass_speciesParameters@master"),
                           overwrite = TRUE)
 
 ## make sure all necessary packages are installed:

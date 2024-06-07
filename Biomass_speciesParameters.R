@@ -7,7 +7,7 @@ defineModule(sim, list(
               person(c("Eliot"), "McIntire", email = "eliot.mcintire@nrcan-rncan.gc.ca", role = c("aut")),
               person(c("Ceres"), "Barros", email = "ceres.barros@ubc.ca", role = c("ctb"))),
   childModules = character(0),
-  version = list(Biomass_speciesParameters = "2.0.1.9001"),
+  version = list(Biomass_speciesParameters = "2.0.2"),
   timeframe = as.POSIXlt(c(NA, NA)),
   timeunit = "year",
   citation = list("citation.bib"),

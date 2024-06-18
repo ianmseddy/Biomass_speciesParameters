@@ -145,9 +145,9 @@ doEvent.Biomass_speciesParameters = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      # build growth curves if applicable
+      ## build growth curves if applicable
       sim <- Init(sim)
-      #update tables
+      ## update tables
       sim <- updateSpeciesTables(sim)
 
       sim <- useDiskFrame(sim)
@@ -271,14 +271,20 @@ useDiskFrame <- function(sim) {
 
   cdRows <- nrow(sim$cohortDataFactorial)
   ## the rows of a factorial object will determine whether it is unique in 99.9% of cases
-  sim$cohortDataFactorial <- as.disk.frame(sim$cohortDataFactorial, overwrite = TRUE,
-                                           outdir = file.path(inputPath(sim),
-                                                              paste0("cohortDataFactorial", cdRows)))
+  sim$cohortDataFactorial <- as.disk.frame(
+    sim$cohortDataFactorial,
+    outdir = file.path(outputPath(sim), paste0("cohortDataFactorial", cdRows)),
+    overwrite = TRUE
+  )
+
   stRows <- nrow(sim$speciesTableFactorial)
-  sim$speciesTableFactorial <- as.disk.frame(sim$speciesTableFactorial, overwrite = TRUE,
-                                             outdir = file.path(inputPath(sim),
-                                                                paste0("speciesTableFactorial", stRows)))
-  ## NOTE: disk.frame objects can be converted to data.table with as.data.table
+  sim$speciesTableFactorial <- as.disk.frame(
+    sim$speciesTableFactorial,
+    outdir = file.path(outputPath(sim), paste0("speciesTableFactorial", stRows)),
+    overwrite = TRUE
+  )
+
+  ## NOTE: disk.frame objects can be converted to data.table with as.data.table()
   gc(reset = TRUE)
   return(sim)
 }

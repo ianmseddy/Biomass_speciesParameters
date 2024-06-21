@@ -273,14 +273,14 @@ useDiskFrame <- function(sim) {
   ## the rows of a factorial object will determine whether it is unique in 99.9% of cases
   sim$cohortDataFactorial <- as.disk.frame(
     sim$cohortDataFactorial,
-    outdir = file.path(outputPath(sim), paste0("cohortDataFactorial", cdRows)),
+    outdir = file.path(outputPath(sim), paste0("cohortDataFactorial", cdRows, ".df")),
     overwrite = TRUE
   )
 
   stRows <- nrow(sim$speciesTableFactorial)
   sim$speciesTableFactorial <- as.disk.frame(
     sim$speciesTableFactorial,
-    outdir = file.path(outputPath(sim), paste0("speciesTableFactorial", stRows)),
+    outdir = file.path(outputPath(sim), paste0("speciesTableFactorial", stRows), ".df"),
     overwrite = TRUE
   )
 

@@ -136,7 +136,8 @@ curves derived from Permanent Sample Plots (PSP data) across Canada (see
 [Permanent sample plot data](#bsppparam-PSPdata)), to find the combination of
 trait values that allows a better match to the observed curves. In particular, 
 it calibrates the `growthcurve`, `mortalityshape`, maximum biomass (`maxB`) and
-maximum aboveground net primary productivity (`maxANPP`) traits (see [Parameter estimation/calibration](#bsppparam-calib)).
+maximum aboveground net primary productivity (`maxANPP`) traits (see [Parameter estimation/calibration](#bsppparam-calib)),
+the latter two in conjunction with the module *Biomass_borealDataPrep*.
 
 This module **will not** obtain other traits or parameters used in
 *Biomass_core* and so it is meant to be used in conjunction with another data/calibration
@@ -238,15 +239,22 @@ theoretical species curves (biomass accumulation curves, to be more precise) to
 which the best non-linear model form fit to the PSP-biomass will be matched for
 each species and species combinations in the study area landscape. The library of curves was
 created by running several *Biomass_core* simulations with no reproduction, competition,
-disturbance, or dispersal effects, on the study area. Each simulation differed in
-the combination of species trait values that influence growth and mortality
+disturbance, or dispersal effects. The species in the simulations encompassed the full
+factorial of traits, growing alone and in competition with one cohort of each other combination.
+Each simulation differed in the combination of species trait values that influence growth and mortality
 dynamics, namely: `growthcurve`, `mortalityshape`, `longevity`, `maxANPP` and
 maximum biomass (`maxBiomass`, not to be confused with the data-driven `maxB`
 which is later calibrated).
 
 The values for `maxANPP` were explored via the `mANPPproportion`, the ratio of 
 `maxANPP` to `maxBiomass` (the parameter used for theoretical curves), as it 
-reflects their relationship.
+reflects their relationship. While any factorial combination is possible to run 
+using the module *Biomass_speciesFactorial*, the default objects used by 
+*Biomass_speciesParameters* utilized `growthcurve` values ranging from 
+0.65 to 0.85 in increments of 0.02, `mortalityshape` values of 20, 22, and 24, 
+`mANPPproportion` values from 3.5 to 6.5 in increments of 0.5, and `longevity` values
+of 125 to 700 in increments of 25, all of which total over 6.5 million unique
+combinations of traits. `maxBiomass` was held constant at 5000, however  
 
 `growthcurve` values varied from 0 to 1, in increments of 0.1; `mortalityshape`
 varied from 5 to 25, in increments of 1; `longevity` varied from 150 to 700 in
@@ -266,6 +274,26 @@ re-simulate the theoretical curves.
 `mANPPproportion` by matching the theoretical species curves produced by
 *Biomass_speciesFactorial* (`cohortDataFactorial`) against observed
 species growth curves from the PSP data.
+
+The parameter `P(sim)$speciesFittingApproach` determines which of three possible
+fitting approaches to use: single, pair-wise, or focal. The `"single"` approach is
+the earliest method, where each species utilizes plots where 50% or more of the biomass
+is composed solely of that species. Non-linear models for each species are fit to these 
+observations independently of each other, with each species possessing its own subset of
+plots. However, this approach is unable to accurately characterize the competitive effects
+that arise when multiple species occupy the same plot. Therefore it is suitable only for
+characterizing species that grow in pure stands, and has been retained largely for 
+backwards compatibility. The `"pairwise"` approach retains all plots where
+exactly two species each represent more than 20% of the total plot biomass, e.g. 
+a plot with 40% Pinus contorta and 39% Populus tremuloides is retained only if the 
+remaining 21% of biomass is composed of more than one species. Then, for each 
+combination of 2 species-of-interest, separate non-linear models are fit for each species. 
+#TODO: I believe the models are ultimately combined but this might not happen until traits are selected
+Of the three approaches, the `pairwise` is best able to account for competition, but requires 
+the most PSP observations, and can be confounded by combinations of species that seldom occur together.
+
+The third approach `speciesFittingApproach`, `"focal"`, is the defalt
+
 
 Before calculating the *observed* species growth curves (i.e., the best of three
 non-linear forms to match PSP data), the module subsets the PSP
@@ -513,32 +541,24 @@ repository](https://github.com/CeresBarros/LandRBiomass_publication) and in
 ### Set up R libraries {#bsppparam-example-libs}
 
 ```{r load-Rlibs-Biomass-speciesParameters, eval = FALSE}
-options(repos = c(CRAN = "https://cloud.r-project.org"))
+
 tempDir <- tempdir()
 
 pkgPath <- file.path(tempDir, "packages", version$platform,
                      paste0(version$major, ".", strsplit(version$minor, "[.]")[[1]][1]))
 dir.create(pkgPath, recursive = TRUE)
 .libPaths(pkgPath, include.site = FALSE)
+ 
+repos <- c("predictiveecology.r-universe.dev", getOption("repos"))
+options(repos = repos)
+install.packages("SpaDES.project")   ## gets Require too
 
-install.packages("remotes")
-if (!require(Require, lib.loc = pkgPath)) {
-  remotes::install_github(
-    paste0("PredictiveEcology/",
-           "Require@5c44205bf407f613f53546be652a438ef1248147"),
-    upgrade = FALSE, force = TRUE)
-  library(Require, lib.loc = pkgPath)
-}
-
-setLinuxBinaryRepo()
 ```
 
 ### Get the module and module dependencies {#bsppparam-example-pkg-mods}
 
 ```{r getModule-Biomass-Biomass-speciesParameters, eval = FALSE}
-Require(paste0("PredictiveEcology/",
-               "SpaDES.project@6d7de6ee12fc967c7c60de44f1aa3b04e6eeb5db"), 
-        require = FALSE, upgrade = FALSE, standAlone = TRUE)
+library(Require)
 
 paths <- list(inputPath = normPath(file.path(tempDir, "inputs")), 
               cachePath = normPath(file.path(tempDir, "cache")), 
@@ -546,16 +566,10 @@ paths <- list(inputPath = normPath(file.path(tempDir, "inputs")),
               outputPath = normPath(file.path(tempDir, "outputs")))
 
 SpaDES.project::getModule(modulePath = paths$modulePath,
-                          c("PredictiveEcology/Biomass_speciesParameters@master"),
+                          c("PredictiveEcology/Biomass_speciesParameters@main"),
                           overwrite = TRUE)
-
-## make sure all necessary packages are installed:
-outs <- SpaDES.project::packagesInModules(modulePath = paths$modulePath)
-Require(c(unname(unlist(outs)), "SpaDES"),
-        require = FALSE, standAlone = TRUE)
-
-## load necessary packages
-Require(c("SpaDES"), upgrade = FALSE, install = FALSE)
+Require::Require("SpaDES.core (>= 2.1.4)")
+Require("googledrive")
 ```
 
 ### Setup simulation
@@ -572,14 +586,14 @@ objects <- list()
 inputs <- list()
 outputs <- list()
 parameters <- list()
-mySim <- simInitAndSpades(times = times, 
+mySim <- SpaDES.core::simInitAndSpades(times = times, 
                           params = parameters, 
                           modules = modules, 
                           paths = paths, 
                           objects = objects)
 
-## to inspect the fitted GAMM models:
-mySim$speciesGAMMs$Pice_mar
+## to inspect the fitted growth models:
+mySim$speciesGrowthCurves$Pice_mar
 ```
 
 ## References {#bsppparam-refs}

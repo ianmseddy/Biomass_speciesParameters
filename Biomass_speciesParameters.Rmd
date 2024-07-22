@@ -216,17 +216,21 @@ layers.
 span several thousands of kilometres), or select the data based on a shapefile
 (`studyAreaANPP`; see [List of input objects](#bsppparam-inputs-list)).
 
-By default, the PSP data are obtained from the National Forest Inventory
-(NFI), the Alberta Ministry of Agriculture, the Saskatchewan Ministry of the
-Environment, the Ontario Ministry of Forests and Natural Resources, and 
-the British Columbia Ministry of Forests. These data were previously treated for 
-errors and standardized into a single dataset with the exact location and 
-identifying attributes anonymized.
+By default, all available PSP is obtained, via the `PSPdataTypes` parameter. 
+The particular data sets will depend on the version of `ianmseddy/PSPclean` that 
+is installed (assuming requisite file-sharing permissions are available). 
+This may include data from the provinces of BC, AB, SK, ON, QC, and NB, as well 
+as the National Forest Inventory. If no file-sharing agreements are in place, 
+the dummy option can be used. This will obtain data from BC, AB, SK, and the NFI 
+that were previously treated for errors and standardized into a single data set 
+with the exact location and identifying attributes anonymized. However, it should
+be noted that data for BC, Quebec, New Brunswick, and the NFI are freely 
+available, thus no file-sharing agreement is necessary for these jurisdictions. 
 
 The data include individual species, diameter at breast height (DBH), and
 sometimes tree height measurements for each tree in a plot, as well as stand
 age. As part of the standardization process, dead trees were removed from the
-dataset. Tree biomass was then  per species using either a DBH-only model or a
+data set. Tree biomass was then  per species using either a DBH-only model or a
 DBH-height model from @LambertEtAl2005, in $g/m^2$.
 
 Note that the model used to calculate biomass can also be changed to @UngEtAl2008
@@ -237,11 +241,12 @@ via the `P(sim)$biomassModel` module parameter (see [list of parameters](#bspppa
 The *Biomass_speciesFactorial* module was used to create a library of
 theoretical species curves (biomass accumulation curves, to be more precise) to 
 which the best non-linear model form fit to the PSP-biomass will be matched for
-each species and species combinations in the study area landscape. The library of curves was
-created by running several *Biomass_core* simulations with no reproduction, competition,
-disturbance, or dispersal effects. The species in the simulations encompassed the full
-factorial of traits, growing alone and in competition with one cohort of each other combination.
-Each simulation differed in the combination of species trait values that influence growth and mortality
+each species and species combinations in the study area landscape. The library 
+of curves was created by running several *Biomass_core* simulations with no 
+reproduction, competition, disturbance, or dispersal effects. The species in the
+simulations encompassed the full factorial of traits, growing alone and in 
+competition with one cohort of each other combination. Each simulation differed 
+in the combination of species trait values that influence growth and mortality
 dynamics, namely: `growthcurve`, `mortalityshape`, `longevity`, `maxANPP` and
 maximum biomass (`maxBiomass`, not to be confused with the data-driven `maxB`
 which is later calibrated).
@@ -275,16 +280,18 @@ re-simulate the theoretical curves.
 *Biomass_speciesFactorial* (`cohortDataFactorial`) against observed
 species growth curves from the PSP data.
 
-The parameter `P(sim)$speciesFittingApproach` determines which of three possible
-fitting approaches to use: single, pair-wise, or focal. The `"single"` approach 
-is the earliest method, where each species utilizes plots where 50% or more of 
-the biomass is composed solely of that species. Non-linear models for each 
-species are fit to these observations independently of each other, with each 
-species possessing its own subset of plots. However, this approach is unable to 
-accurately characterize the competitive effects that arise when multiple species
-occupy the same plot. Therefore it is suitable only for characterizing species 
-that grow in pure stands, and has been retained largely for backwards 
-compatibility. 
+The parameter `P(sim)$speciesFittingApproach` determines which of four possible
+fitting approaches to use: all, single, pair-wise, or focal. The `all` approach
+combines all PSPs into a single species, thus parameterizing all species 
+identically. This is not intended to have an ecological application. 
+The `"single"` approach is the earliest method, where each species utilizes 
+plots where 50% or more of the biomass is composed solely of that species. 
+Non-linear models for each species are fit to these observations independently 
+of each other, with each species possessing its own subset of plots. However,
+this approach is unable to accurately characterize the competitive effects that 
+arise when multiple species occupy the same plot. Therefore it is suitable only 
+for characterizing species that grow in pure stands, and has been retained 
+largely for backwards compatibility. 
 
 The `"pairwise"` approach retains all plots where
 exactly two species each represent more than 20% of the total plot biomass, e.g. 
@@ -391,27 +398,28 @@ maxB \times \frac{mANPPproportion}{100}
 where `maxB` is the already (re-)calibrated version.
 
 In cases where there are not sufficient PSP data to fit the growth models and 
-perform the calibration, the `mANPPproportion`, `growthcurve`, and `mortalityshape`
-will default to the means of other species. This behaviour ensures they remain competitive,
-as the parameterized traits are often significant departures from the defaults used in 
-many LANDIS-II applications in Canada's boreal forests.
+perform the calibration, the `mANPPproportion`, `growthcurve`, and 
+`mortalityshape` will default to the respective means of other species. These 
+species are tracked via the `source` column in `sim$species`, which will be one 
+of  `"interpolated"` or `"estimated"`. This mechanism ensures these species 
+remain competitive, as the parameterized traits are often significant departures
+from defaults used in many LANDIS-II applications to Canada's boreal forests.
 
 ### List of input objects {#bsppparam-inputs-list}
 
 The full list of input objects required by the module is presented below (Table
-\@ref(tab:moduleInputs2-Biomass-speciesParameters)). The only input that
-**must** be provided is `studyAreaANPP` (the study area used extract the PSP
-data from). All other input objects have internal defaults, but the user may
-need to request access to their online files.
+\@ref(tab:moduleInputs2-Biomass-speciesParameters)). The input `studyAreaANPP`
+(the study area used extract the PSP data from) is optional, and therefore no
+default is supplied. All other input objects have internal defaults, but the 
+user may need to request access to their online files.
 
 Of these inputs, the following are particularly important and deserve special
 attention:
 
 **Spatial layers**
 
-    -   `studyAreaANPP` -- shapefile. A `SpatialPolygonsDataFrame` with a single
-        polygon determining the where the PSP should be subset to simulation
-        will take place. This input object **must be supplied by the user**.
+    -   `studyAreaANPP` -- shapefile. A `sf` or `SpatVector` deterfmining where 
+     the geographic extent of the PSP data. 
 
 -   **Tables**
 

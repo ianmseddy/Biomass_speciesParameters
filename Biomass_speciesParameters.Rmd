@@ -276,24 +276,36 @@ re-simulate the theoretical curves.
 species growth curves from the PSP data.
 
 The parameter `P(sim)$speciesFittingApproach` determines which of three possible
-fitting approaches to use: single, pair-wise, or focal. The `"single"` approach is
-the earliest method, where each species utilizes plots where 50% or more of the biomass
-is composed solely of that species. Non-linear models for each species are fit to these 
-observations independently of each other, with each species possessing its own subset of
-plots. However, this approach is unable to accurately characterize the competitive effects
-that arise when multiple species occupy the same plot. Therefore it is suitable only for
-characterizing species that grow in pure stands, and has been retained largely for 
-backwards compatibility. The `"pairwise"` approach retains all plots where
+fitting approaches to use: single, pair-wise, or focal. The `"single"` approach 
+is the earliest method, where each species utilizes plots where 50% or more of 
+the biomass is composed solely of that species. Non-linear models for each 
+species are fit to these observations independently of each other, with each 
+species possessing its own subset of plots. However, this approach is unable to 
+accurately characterize the competitive effects that arise when multiple species
+occupy the same plot. Therefore it is suitable only for characterizing species 
+that grow in pure stands, and has been retained largely for backwards 
+compatibility. 
+
+The `"pairwise"` approach retains all plots where
 exactly two species each represent more than 20% of the total plot biomass, e.g. 
-a plot with 40% Pinus contorta and 39% Populus tremuloides is retained only if the 
-remaining 21% of biomass is composed of more than one species. Then, for each 
-combination of 2 species-of-interest, separate non-linear models are fit for each species. 
-#TODO: I believe the models are ultimately combined but this might not happen until traits are selected
-Of the three approaches, the `pairwise` is best able to account for competition, but requires 
-the most PSP observations, and can be confounded by combinations of species that seldom occur together.
+a plot with 40% Pinus contorta and 39% Populus tremuloides is retained only if 
+the remaining 21% of biomass is composed of more than one species. Then, for 
+each combination of 2 species-of-interest, separate non-linear models are fit 
+for each species. #TODO: I believe the models are ultimately combined but this 
+might not happen until traits are selected. 
+Of the three approaches, the `pairwise` is best able to account for competition, 
+but is most sensitive to data availability and can be confounded by combinations 
+of species that seldom occur together.
 
-The third approach `speciesFittingApproach`, `"focal"`, is the defalt
-
+The third approach `speciesFittingApproach`, `"focal"`, is the default. This
+approach is similar to `"pairwise"`, but combines the species that are NOT the 
+species-of-interest (or 'focal' species). For example, in a plot with biomass
+composition of 20% Pinus contorta, 40% Populus tremuloides, and 21% Picea 
+mariana, when fitting the P. contorta equations, the biomass of P. tremuloides
+and P. mariana are combined, and when fitting P. tremuloides, the biomass of P. 
+contorta and P. mariana are combined. In comparison to the `pairwise` approach, 
+this approach sacrifices some detail but is less sensitive to data quality and 
+availability.
 
 Before calculating the *observed* species growth curves (i.e., the best of three
 non-linear forms to match PSP data), the module subsets the PSP
@@ -364,7 +376,7 @@ ecolocation (ecological zone and land cover combination).
 curves, to rescale `maxB`. This ratio is called the `inflationFactor` and it is
 multiplied by `maxB` values previously estimated from data (e.g. by
 *Biomass_borealDataPrep*). This way, species simulated in *Biomass_core* are
-able to achieve the maximum observed biomasses used to *initially* estimate
+able to achieve the maximum observed biomass used to *initially* estimate
 `maxB`.
 
 Finally, the module calibrates `maxANPP` using the `mANPPproportion` value from
@@ -379,8 +391,10 @@ maxB \times \frac{mANPPproportion}{100}
 where `maxB` is the already (re-)calibrated version.
 
 In cases where there are not sufficient PSP data to fit the growth models and 
-perform the calibration, `mANPPproportion` defaults to 3.33 (the value used in LANDIS-II
-applications in Canada's boreal forests) and the `inflationFactor` defaults to 1.
+perform the calibration, the `mANPPproportion`, `growthcurve`, and `mortalityshape`
+will default to the means of other species. This behaviour ensures they remain competitive,
+as the parameterized traits are often significant departures from the defaults used in 
+many LANDIS-II applications in Canada's boreal forests.
 
 ### List of input objects {#bsppparam-inputs-list}
 

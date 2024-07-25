@@ -136,8 +136,9 @@ curves derived from Permanent Sample Plots (PSP data) across Canada (see
 [Permanent sample plot data](#bsppparam-PSPdata)), to find the combination of
 trait values that allows a better match to the observed curves. In particular, 
 it calibrates the `growthcurve`, `mortalityshape`, maximum biomass (`maxB`) and
-maximum aboveground net primary productivity (`maxANPP`) traits (see [Parameter estimation/calibration](#bsppparam-calib)),
-the latter two in conjunction with the module *Biomass_borealDataPrep*.
+maximum aboveground net primary productivity (`maxANPP`) traits (see [Parameter 
+estimation/calibration](#bsppparam-calib)), the latter two in conjunction with 
+the module *Biomass_borealDataPrep*.
 
 This module **will not** obtain other traits or parameters used in
 *Biomass_core* and so it is meant to be used in conjunction with another data/calibration
@@ -259,14 +260,7 @@ using the module *Biomass_speciesFactorial*, the default objects used by
 0.65 to 0.85 in increments of 0.02, `mortalityshape` values of 20, 22, and 24, 
 `mANPPproportion` values from 3.5 to 6.5 in increments of 0.5, and `longevity` values
 of 125 to 700 in increments of 25, all of which total over 6.5 million unique
-combinations of traits. `maxBiomass` was held constant at 5000, however  
-
-`growthcurve` values varied from 0 to 1, in increments of 0.1; `mortalityshape`
-varied from 5 to 25, in increments of 1; `longevity` varied from 150 to 700 in
-increments of 25; `mANPPproportion` varied from 0.25 to 10 in increments of
-0.25. `maxBiomass` was held constant at 5000.
-
-This resulted in over 64,000,000 theoretical curves.
+combinations of traits. 
 
 Results from these simulations were compiled into a table (`cohortDataFactorial`
 ; see [List of input objects](#bsppparam-inputs-list)) that is accessed by
@@ -372,7 +366,7 @@ values, which are then used directly as the calibrated values, in case of
 `growthcurve` and `mortalityshape`, or to calibrate `maxANPP` in the case of
 `maxANPPproportion` (see below).
 
-Since simulated growth curves never achieve the maximum biomass parameter (the
+Because simulated growth curves never achieve the maximum biomass parameter (the
 `maxBiomass` parameter set to 5000 for all simulations of theoretical species
 curves, or the `maxB` parameter in *Biomass_core* simulations), it acts as an
 asymptotic limit that reflects the potential maximum biomass for a species in an
@@ -418,20 +412,23 @@ attention:
 
 **Spatial layers**
 
-    -   `studyAreaANPP` -- shapefile. A `sf` or `SpatVector` deterfmining where 
-     the geographic extent of the PSP data. 
+    -   `studyAreaANPP` -- shapefile. An `sf` or `SpatVector` object 
+    determining the geographic extent of the PSP data. 
 
 -   **Tables**
 
     -   `speciesTableFactorial` and `cohortDataFactorial` -- a tables of species
-        trait combinations and the theoretical species grwoth curve data
+        trait combinations and the theoretical species growth curve data
         (respectively)
+        
     -   `PSPmeasure_sppParams`, `PSPplot_sppParams` and `PSPgis_sppParams` --
         tree measurement, biomass growth and geographical data of the PSP
         datasets used to buildi observed species growth curves.
+        
     -   `species` -- a table of invariant species traits that may have been
         produced by another module. It **must** contain the columns 'species',
         'growthcurve' and 'mortality shape', whose values will be calibrated.
+        
     -   `speciesEcoregion` -- table of spatially-varying species traits that may
         have been produced by another module. It **must** contain the columns
         'speciesCode', 'maxB' and 'maxANPP' and 'ecoregionGroup' (the
@@ -471,16 +468,21 @@ Of these parameters, the following are particularly important:
 
 **Calibration parameters**
 
-    -   `biomassModel` -- the model used to calculate biomass from DBH
+    -   `standAgesForFitting`
     
     -   `speciesFittingApproach` -- should the calibration take into account species
     growing in single- or multi-species context?
+    
+    - `quantileAgeSubset` -- upper quantile age value used to subset PSP data. 
+    It can be a vector named by species, or a single numeric. It is used to limit
+    the outsized influence of old stands at the tail end of the stand age 
+    distribution. However, it will have varying effects by species. For example, 
+    removing the 95th quantile of lodgepole stands 
 
 **Data processing**
 
-    -   `PSPperiod` -- PSP data period to use.
-    
-    -   `quantileAgeSubset` -- upper quantile age value used to subset PSP data.
+    -   `PSPdataTypes` -- which jurisdictional plot data to use, important 
+    because the default may attempt to use PSP data that are unavailable
 
 \newpage
 \blandscape
@@ -600,9 +602,6 @@ Require("googledrive")
 times <- list(start = 0, end = 1)
 
 modules <- list("Biomass_speciesParameters")
-
-#the purpose of this table is experiment with modify longevity - longevity is not estimated by the module
-#but it is used in trait estimation. 
 
 objects <- list()
 inputs <- list()

@@ -325,11 +325,10 @@ Save <- function(sim) {
   if (!suppliedElsewhere("sppEquiv", sim)) {
     #pass a default sppEquivalencies_CA for common species in western Canada
     sppEquiv <- LandR::sppEquivalencies_CA
-    sim$sppEquiv <- sppEquiv[LandR %in% c(Pice_mar = "Pice_mar", Pice_gla = "Pice_gla",
-                                          Pinu_con = "Pinu_con", Popu_tre = "Popu_tre",
-                                          Betu_pap = "Betu_pap", Pice_eng = "Pice_eng",
-                                          Abie_bal = "Abie_bal",
-                                          Pinu_ban = "Pinu_ban", Lari_lar = "Lari_lar"), ]
+    #sppEquiv should be Boreal to match default P(sim)$sppEquivCol
+    sim$sppEquiv <- sppEquiv[Boreal %in% c("Pice_Mar", "Pice_Gla", "Pinu_Con",
+                                           "Pinu_Ban", "Popu_Tre", "Lari_Lar",
+                                           "Betu_Pap", "Abie_Bal"), ]
   }
 
   if (!suppliedElsewhere("speciesEcoregion", sim)) {

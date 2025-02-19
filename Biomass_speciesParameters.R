@@ -47,7 +47,7 @@ defineModule(sim, list(
                                   "pairwise species, but using a focal species approach where all other species are ",
                                   "pooled into 'other' or do one species at a time. If 'all', all species will have",
                                   "identical species-level traits")),
-    defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
+    defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     paste("The column in `sim$sppEquiv` data.table that defines individual species.",
                           "The names should match those in the species table.")),
     defineParameter("standAgesForFitting", "integer", c(21L, 91L), NA, NA,

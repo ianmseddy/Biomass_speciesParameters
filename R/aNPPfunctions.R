@@ -20,11 +20,11 @@ prepPSPaNPP <- function(studyAreaANPP, PSPgis, PSPmeasure, PSPplot,
                              MeasureYear < max(PSPperiod),]
   PSPplot <- PSPplot[MeasureYear > min(PSPperiod) &
                        MeasureYear < max(PSPperiod),]
-
-  PSPmeasure <- PSPmeasure[PSPplot, on = c("MeasureID", "OrigPlotID1", "MeasureYear")]
-
+  PSPmeasure <- PSPmeasure[PSPplot, on = c("MeasureID", "OrigPlotID1", "MeasureYear", "source")]
+  
+  #TODO: this should be parameterized - besides its tree density
   #Filter by > 30 trees at first measurement (P) to ensure forest.
-  forestPlots <- PSPmeasure[, .(measures = .N), OrigPlotID1] %>%
+  forestPlots <- PSPmeasure[MeasureYear == baseYear, .(measures = .N), OrigPlotID1] %>%
     .[measures >= 30,]
 
   PSPmeasure <- PSPmeasure[OrigPlotID1 %in% forestPlots$OrigPlotID1,]
@@ -69,6 +69,7 @@ prepPSPaNPP <- function(studyAreaANPP, PSPgis, PSPmeasure, PSPplot,
   message(yellow("No PSP biomass estimate possible for these species: "))
   message(crayon::yellow(paste(unique(tempOut$missedSpecies), collapse = ", ")))
 
+  #TODO: is this still necessary? which plot?
   #clean up - added a catch for incorrect plotSize affecting stem density
   densities <- PSPmeasure[, .(.N, PlotSize = mean(PlotSize)), MeasureID]
   densities[, density := N/PlotSize]
@@ -314,7 +315,7 @@ buildModels <- function(species, psp, speciesEquiv,
   simulatedData <- simulateYoungStands(cohortData = standData, N = 50)
   simData <- rbindlist(list(standData, simulatedData), fill = TRUE)
 
-  ## This weights the real data by spDominance, without distorting the mean of fake data. Weights should center around 1 for gamm I think
+  ## This weights the real data by spDominance, without distorting the mean of fake data. 
   Realweights <- standData$spDom/mean(standData$spDom)
   Fakeweights <- rep(1, times = nrow(simulatedData))
   simData$Weights <- c(Realweights, Fakeweights)

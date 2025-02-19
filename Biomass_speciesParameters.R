@@ -47,7 +47,7 @@ defineModule(sim, list(
                                   "pairwise species, but using a focal species approach where all other species are ",
                                   "pooled into 'other' or do one species at a time. If 'all', all species will have",
                                   "identical species-level traits")),
-    defineParameter("sppEquivCol", "character", "Boreal", NA, NA,
+    defineParameter("sppEquivCol", "character", "LandR", NA, NA,
                     paste("The column in `sim$sppEquiv` data.table that defines individual species.",
                           "The names should match those in the species table.")),
     defineParameter("standAgesForFitting", "integer", c(21L, 91L), NA, NA,
@@ -145,9 +145,9 @@ doEvent.Biomass_speciesParameters = function(sim, eventTime, eventType) {
   switch(
     eventType,
     init = {
-      # build growth curves if applicable
+      ## build growth curves if applicable
       sim <- Init(sim)
-      #update tables
+      ## update tables
       sim <- updateSpeciesTables(sim)
 
       sim <- useDiskFrame(sim)
@@ -271,25 +271,27 @@ useDiskFrame <- function(sim) {
 
   cdRows <- nrow(sim$cohortDataFactorial)
   ## the rows of a factorial object will determine whether it is unique in 99.9% of cases
-  sim$cohortDataFactorial <- as.disk.frame(sim$cohortDataFactorial, overwrite = TRUE,
-                                           outdir = file.path(inputPath(sim),
-                                                              paste0("cohortDataFactorial", cdRows)))
+  sim$cohortDataFactorial <- as.disk.frame(
+    sim$cohortDataFactorial,
+    outdir = file.path(outputPath(sim), paste0("cohortDataFactorial", cdRows, ".df")),
+    overwrite = TRUE
+  )
+
   stRows <- nrow(sim$speciesTableFactorial)
-  sim$speciesTableFactorial <- as.disk.frame(sim$speciesTableFactorial, overwrite = TRUE,
-                                             outdir = file.path(inputPath(sim),
-                                                                paste0("speciesTableFactorial", stRows)))
-  ## NOTE: disk.frame objects can be converted to data.table with as.data.table
+  sim$speciesTableFactorial <- as.disk.frame(
+    sim$speciesTableFactorial,
+    outdir = file.path(outputPath(sim), paste0("speciesTableFactorial", stRows), ".df"),
+    overwrite = TRUE
+  )
+
+  ## NOTE: disk.frame objects can be converted to data.table with as.data.table()
   gc(reset = TRUE)
   return(sim)
 }
 
 ### template for save events
 Save <- function(sim) {
-  # ! ----- EDIT BELOW ----- ! #
-  # do stuff for this event
   sim <- saveFiles(sim)
-
-  # ! ----- STOP EDITING ----- ! #
   return(invisible(sim))
 }
 
@@ -323,11 +325,10 @@ Save <- function(sim) {
   if (!suppliedElsewhere("sppEquiv", sim)) {
     #pass a default sppEquivalencies_CA for common species in western Canada
     sppEquiv <- LandR::sppEquivalencies_CA
-    sim$sppEquiv <- sppEquiv[LandR %in% c(Pice_mar = "Pice_mar", Pice_gla = "Pice_gla",
-                                          Pinu_con = "Pinu_con", Popu_tre = "Popu_tre",
-                                          Betu_pap = "Betu_pap", Pice_eng = "Pice_eng",
-                                          Abie_bal = "Abie_bal",
-                                          Pinu_ban = "Pinu_ban", Lari_lar = "Lari_lar"), ]
+    #sppEquiv should be Boreal to match default P(sim)$sppEquivCol
+    sim$sppEquiv <- sppEquiv[Boreal %in% c("Pice_Mar", "Pice_Gla", "Pinu_Con",
+                                           "Pinu_Ban", "Popu_Tre", "Lari_Lar",
+                                           "Betu_Pap", "Abie_Bal"), ]
   }
 
   if (!suppliedElsewhere("speciesEcoregion", sim)) {
